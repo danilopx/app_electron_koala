@@ -15,6 +15,11 @@ module.exports = {
     ...(packageJson.build?.directories || {}),
     output: outputDir,
   },
+  linux: {
+    icon: 'src/assets/Simplify-256.png',
+    target: ['AppImage', 'deb'],
+    category: 'Office',
+  },
   publish: isGitHubPublishEnabled
     ? [
         {

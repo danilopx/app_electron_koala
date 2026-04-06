@@ -1,6 +1,6 @@
 {
   "name": "koala",
-  "version": "1.0.5",
+  "version": "1.0.9",
   "main": "electron/main.js",
   "desktopAppUrl": "http://koala.simplifysystem.com.br/",
   "scripts": {
@@ -19,12 +19,13 @@
     "publish:web": "powershell -NoProfile -ExecutionPolicy Bypass -Command \"if (-not $env:KOALA_WEB_PUBLISH_DIR) { throw 'Defina KOALA_WEB_PUBLISH_DIR com a pasta de publicacao da web.' }; & .\\scripts\\publish-web.ps1 -PublishDir $env:KOALA_WEB_PUBLISH_DIR -Clean\"",
     "build:desktop:dir": "npx electron-builder --config electron-builder.config.js --dir",
     "build:desktop:fresh": "powershell -NoProfile -ExecutionPolicy Bypass -Command \"$out = 'dist-electron-builds/' + (Get-Date -Format 'yyyyMMdd-HHmmss'); $env:ELECTRON_BUILDER_OUTPUT = $out; npx electron-builder --config electron-builder.config.js\"",
+    "build:desktop:linux": "npx electron-builder --config electron-builder.config.js --linux AppImage",
     "build:desktop:github": "powershell -NoProfile -ExecutionPolicy Bypass -Command \"if (-not $env:GH_OWNER) { throw 'Defina GH_OWNER para publicar no GitHub.' }; if (-not $env:GH_REPO) { throw 'Defina GH_REPO para publicar no GitHub.' }; if (-not ($env:GH_TOKEN -or $env:GITHUB_TOKEN)) { throw 'Defina GH_TOKEN ou GITHUB_TOKEN para publicar no GitHub.' }; $out = 'dist-electron-builds/' + (Get-Date -Format 'yyyyMMdd-HHmmss'); $env:ELECTRON_BUILDER_OUTPUT = $out; npx electron-builder --config electron-builder.config.js --publish always\"",
     "build:desktop": "npm run build:desktop:fresh",
     "release": "powershell -NoProfile -ExecutionPolicy Bypass -Command \"if (-not $env:KOALA_DESKTOP_URL) { throw 'Defina KOALA_DESKTOP_URL com a URL publicada do frontend.' }; & .\\scripts\\release.ps1 -DesktopUrl $env:KOALA_DESKTOP_URL\"",
     "release:web": "npm run build:web:prod",
     "release:desktop": "powershell -NoProfile -ExecutionPolicy Bypass -Command \"if (-not $env:KOALA_DESKTOP_URL) { throw 'Defina KOALA_DESKTOP_URL com a URL publicada do frontend.' }; & .\\scripts\\release.ps1 -DesktopUrl $env:KOALA_DESKTOP_URL\"",
-    "release:desktop:github": "powershell -NoProfile -ExecutionPolicy Bypass -Command \"if (-not $env:KOALA_DESKTOP_URL) { throw 'Defina KOALA_DESKTOP_URL com a URL publicada do frontend.' }; & .\\scripts\\release.ps1 -DesktopUrl $env:KOALA_DESKTOP_URL -PublishToGithub\"",
+    "release:desktop:github": "powershell -NoProfile -ExecutionPolicy Bypass -Command \"& .\\scripts\\release-github-tag.ps1\"",
     "release:desktop:local": "powershell -NoProfile -ExecutionPolicy Bypass -Command \"& .\\scripts\\release-local.ps1\"",
     "watch": "ng build --watch --configuration development",
     "test": "ng test"

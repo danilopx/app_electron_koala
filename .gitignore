@@ -10,6 +10,7 @@ package copy.json
 range.bin
 tmp-*.js
 tmp-*.log
+scripts/release.env.ps1
 
 # Created by https://www.toptal.com/developers/gitignore/api/visualstudiocode,angular,node,webstorm,git
 # Edit at https://www.toptal.com/developers/gitignore?templates=visualstudiocode,angular,node,webstorm,git

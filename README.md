@@ -25,17 +25,52 @@ Para gerar o executável final desacoplado do frontend:
 npm run build:desktop
 ```
 
-Para gerar um release desktop e publicar no GitHub Releases:
+Para gerar a versao Linux:
+
+```bash
+npm run build:desktop:linux
+```
+
+Isso gera um `AppImage`, que costuma ser o formato mais simples para distribuir no Linux.
+
+Para gerar um release desktop completo e publicar no GitHub Releases:
 
 ```powershell
-$env:KOALA_DESKTOP_URL = 'http://koala.simplifysystem.com.br/'
-$env:GH_OWNER = 'seu-usuario-ou-organizacao'
-$env:GH_REPO = 'seu-repositorio'
-$env:GH_TOKEN = 'seu-token-do-github' # ou GITHUB_TOKEN
 npm run release:desktop:github
 ```
 
-Antes de publicar, aumente a `version` no `package.json`. O Electron compara essa versao com a do GitHub Releases para decidir se existe atualizacao.
+Esse comando cria e envia a tag `v<version>` do `package.json`. O workflow do GitHub Actions então gera primeiro o Windows, depois o Linux, e por fim publica o release no GitHub.
+
+Antes de executar, aumente a `version` no `package.json`. O Electron compara essa versao com a do GitHub Releases para decidir se existe atualizacao.
+
+Se quiser deixar os dados fixos na sua máquina, crie um arquivo local em `scripts/release.env.ps1` com:
+
+```powershell
+$env:GH_OWNER = 'danilopx'
+$env:GH_REPO = 'app_electron_koala'
+$env:GH_TOKEN = 'seu_token_novo'
+```
+
+Esse arquivo é ignorado pelo Git e é carregado automaticamente pelo comando de release.
+
+### GitHub Actions
+
+O workflow em `.github/workflows/release-desktop.yml`:
+
+- builda Windows primeiro
+- builda Linux depois
+- gera `AppImage` e `.deb`
+- publica os artefatos no mesmo release
+- dispara quando voce envia uma tag `v*` ou roda manualmente pelo Actions
+
+Exemplo:
+
+```bash
+git tag v1.0.6
+git push origin v1.0.6
+```
+
+Para disparo manual, abra `Actions`, selecione `Release Desktop` e informe a tag, por exemplo `v1.0.6`.
 
 Para evitar reescrever as variáveis toda vez, use o atalho local:
 
@@ -43,12 +78,7 @@ Para evitar reescrever as variáveis toda vez, use o atalho local:
 npm run release:desktop:local
 ```
 
-Esse comando usa por padrão:
-- `http://koala.simplifysystem.com.br/`
-- `danilopx`
-- `app_electron_koala`
-
-Se `GH_TOKEN` ou `GITHUB_TOKEN` já estiverem definidos na sessão, ele usa esses valores; caso contrário, pede o token na hora.
+Esse comando não usa `GH_TOKEN`. Ele só cria/pusha a tag local para disparar o GitHub Actions.
 
 Para gerar web de producao e instalador em uma unica execucao, informando a URL final do frontend:
 
