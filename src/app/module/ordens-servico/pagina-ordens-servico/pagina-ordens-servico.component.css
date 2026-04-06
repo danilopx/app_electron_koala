@@ -1,0 +1,11 @@
+.os-row-detalhes {
+  display: flex;
+  flex-direction: row;
+  flex-wrap: wrap;
+  width: 100%;
+  height: 100%;
+}
+
+.os-row-detalhes .os-col-detalhes {
+  text-align: left;
+}

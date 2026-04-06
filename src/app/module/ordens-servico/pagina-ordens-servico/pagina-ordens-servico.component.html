@@ -1,0 +1,45 @@
+<po-page-default
+>
+
+  <po-loading-overlay *ngIf="!ordensCarregadas && ordensServicoAtuais.length === 0 && !ordemComErros"
+                      [p-text]="'Carregando Ordens'"
+  ></po-loading-overlay>
+
+  <!-- HTML do Componente Pai. Lista as Ordens de Serviço. -->
+  <ng-container *ngIf="
+  ordensServico$    &&
+  ordensCarregadas  &&
+  !ordemComErros    &&
+  ordensServicoAtuais.length !== 0
+  else nenhumaOrdemServico">
+    <po-search
+      class="po-sm-12 po-mb-1"
+      name="Pesquisar Palavras e Informações"
+      [p-literals]="{ 'search': 'Pesquise por ID, Executor e Outras Informações da O.S.' }"
+
+      [p-items]="ordensServicoAtuais"
+      [p-filter-keys]="filtrosDaOs"
+
+      (p-filtered-items-change)="event_ordensFiltradas($event)"
+    ></po-search>
+
+    <app-row-ordem-servico
+      *ngFor="let ordemServico of ordensFiltradas"
+      [ordemServico]="ordemServico"
+    ></app-row-ordem-servico>
+  </ng-container>
+
+  <!--<app-error *ngIf="!ordensCarregadas && ordemComErros"></app-error>-->
+
+</po-page-default>
+
+<ng-template #nenhumaOrdemServico>
+
+  <hr>
+
+  <div class="po-text-center">
+    <span class="po-font-subtitle">Não existem Ordens de Serviço abertas no momento.</span>
+  </div>
+
+</ng-template>
+

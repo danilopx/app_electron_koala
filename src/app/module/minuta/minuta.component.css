@@ -1,0 +1,35 @@
+#print-area {
+  position: absolute;
+  top: -2000px;
+  left: 0;
+  width: 794px !important;
+  background: white;
+  padding: 20px;
+  display: block !important;
+  z-index: -1;
+}
+
+:host ::ng-deep .minuta-filters {
+  display: flex;
+  flex-wrap: nowrap;
+  align-items: flex-end;
+  gap: 12px;
+}
+
+:host ::ng-deep .minuta-filters .filter-field {
+  flex: 1 1 0;
+  min-width: 0;
+}
+
+:host ::ng-deep .minuta-filters .filter-actions {
+  display: flex;
+  align-items: flex-end;
+  gap: 8px;
+  flex: 0 0 auto;
+  margin-left: auto;
+}
+
+:host ::ng-deep .minuta-filters .filter-field input,
+:host ::ng-deep .minuta-filters .filter-field select {
+  width: 100%;
+}

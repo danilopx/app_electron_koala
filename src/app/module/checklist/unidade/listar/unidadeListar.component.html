@@ -1,0 +1,259 @@
+<po-page-default>
+  <po-loading-overlay *ngIf="loagingPage" [p-text]="'Aguarde'"></po-loading-overlay>
+
+  <div class="po-row po-mb-2" style="position: relative">
+      <div class=" po-sm-10"></div>
+    <!--<po-button class="po-sm-2" p-icon="po-icon po-icon-refresh" (p-click)="listPedidos(false,this.tipo)" p-label="Atualizar">
+    </po-button>--->
+    <po-button class="po-sm-2" p-icon="po-icon po-icon-upload" (p-click)="novoCkecklist()" p-label="Nova Unidade">
+    </po-button>
+    <!--
+    <po-widget
+      class="po-lg-3 po-mt-2"
+      [p-height]="200"
+      p-primary-label="Listar"
+      (p-primary-action)="listPedidos(false,'','','AB')"
+    >
+      <div class="po-font-subtitle po-text-center">{{ totalPedidoAB }}</div>
+      <div class="po-text-center">Última Atualização {{ timenow }}</div>
+    </po-widget>
+    <po-widget
+      class="po-lg-3 po-mt-2"
+      [p-height]="200"
+      p-primary-label="Listar"
+      (p-primary-action)="listPedidos(false,'','','FP')"
+    >
+      <div class="po-font-subtitle po-text-center">{{ totalPedidoFP }}</div>
+      <div class="po-text-center">Última Atualização {{ timenow }}</div>
+    </po-widget>
+
+    <po-widget class="po-lg-3 po-mt-2" [p-height]="200" p-primary-label="Listar" (p-primary-action)="listPedidos(false,'','','FT')">
+      <div class="po-font-subtitle po-text-center">{{ totalPedidoFT }}</div>
+      <div class="po-text-center">Última Atualização {{ timenow }}</div>
+    </po-widget>
+
+    <po-widget
+      class="po-lg-3 po-mt-2"
+      [p-height]="200"
+      p-primary-label="Importar"
+      (p-primary-action)="openModal('import', '')"
+    >
+      <div class="po-font-subtitle po-text-center">{{ totalDocuments }}</div>
+      <div class="po-text-center">Última Atualização {{ timenow }}</div>
+    </po-widget>-->
+
+    <!-- <po-widget
+      class="po-lg-3 po-mt-2"
+      [p-height]="200"
+      p-primary-label="Exportar"
+    
+    >
+      <div class="po-font-subtitle po-text-center">{{ totalPedidoEX }}</div>
+      <div class="po-text-center">Última Atualização {{ timenow }}</div>
+    </po-widget>-->
+  </div>
+ 
+  <div class="po-alert po-alert-info" >
+    <span class="po-icon po-icon-info"></span>
+    <strong>Informação:</strong>
+    <div>Unidades representam o que será avaliado no checklist, podendo ser um uma empresa, setor, equipamento, normas, automóvel, entre outros.</div>
+  </div>
+
+  <po-divider></po-divider>
+  <!--(p-expanded)="onExpandDetail($event)"-->
+  <div class="table-card">
+    <app-table
+      [p-items]="unidade"
+      [p-hide-columns-manager]="true"
+      [p-hide-batch-actions]="false"
+      p-container="true"
+      [p-selectable]="false"
+      [p-sort]="true"
+      [p-striped]="true"
+      [p-loading]="loagingPage"
+      [p-literals]="customLiterals"
+      [p-columns]="columns"
+      [p-max-columns]="7"
+      [p-infinite-scroll]="false"
+      (p-show-more)="listUnidade()"
+       p-hide-table-search="true"
+       [p-actions]="actions"
+       p-actions-right="true"
+    >
+    <!-- <ng-template p-table-row-template let-rowItem let-i="rowIndex">
+      <po-widget
+        <div lass="po-row">
+          <div class="po-md-3">
+            <font class="po-font-text-large-bold"
+              >Informações do Pedido: {{ rowItem.filial }} / {{ rowItem.numero }}</font
+            >
+          </div>
+          <div *ngIf="rowItem.step === '3' && rowItem.status !== 'AG'">
+            <po-button
+              *ngIf="rowItem.step === '3'"
+              class="po-mb-2 po-pull-right po-m-1"
+              p-icon="po-icon po-icon-document"
+              (p-click)="classPedido(rowItem.filial, rowItem.numero, rowItem.xtipo)"
+              p-label="Classificar"
+            >
+            </po-button>
+          </div>
+
+          <div *ngIf="rowItem.step === '3' && rowItem.status === 'AG'">
+            <div class="po-md-9 po-text-right">
+              <po-tag p-value="Aguardando Transmissão" p-color="red"></po-tag>
+            </div>
+          </div>
+
+          <po-button
+            *ngIf="rowItem.step === '4' || (rowItem.step === '3' && rowItem.status !== 'AG')"
+            class="po-mb-2 po-pull-right po-m-1"
+            p-icon="po-icon po-icon-document"
+            (p-click)="viewPedido(rowItem.filial, rowItem.numero, rowItem.xtipo)"
+            p-label="Visualizar Nota Fiscal"
+          >
+          </po-button>
+
+          <po-button
+            *ngIf="rowItem.step === '2' && rowItem.status !== 'AG'"
+            class="po-mb-2 po-pull-right po-m-1"
+            p-icon="po-icon po-icon-document"
+            (p-click)="invoicePedido(rowItem.filial, rowItem.numero, rowItem.xtipo)"
+            p-label="Gerar Nota Fiscal"
+          >
+          </po-button>
+
+          <po-button
+            *ngIf="rowItem.step === '0' || rowItem.step === '1'"
+            class="po-mb-2 po-pull-right po-m-1"
+            p-icon="po-icon po-icon-document"
+            (p-click)="releasePedido(rowItem.filial, rowItem.numero, rowItem.xtipo)"
+            p-label="Liberar Estoque"
+          >
+          </po-button>
+
+          <po-button
+            *ngIf="rowItem.step === '0' || rowItem.step === '1' || (rowItem.step === '2' && rowItem.status !== 'AG')"
+            class="po-mb-2 po-pull-right po-m-1"
+            p-icon="po-icon po-icon-document"
+            (p-click)="editPedido(rowItem.filial, rowItem.numero, rowItem.xtipo)"
+            p-label="Editar Pedido"
+          >
+          </po-button>
+        </div>
+
+        <po-divider></po-divider>
+        <div class="po-row">
+          <po-stepper [p-sequential]="true">
+            <po-step p-label="Pedido"></po-step>
+            <po-step p-label="Liberação de Estoque"></po-step>
+            <po-step p-label="Faturamento"></po-step>
+            <po-step p-label="Classificação"></po-step>
+            <po-step p-label="Finalizado"></po-step>
+          </po-stepper>
+         
+            <po-stepper
+            [p-orientation]="properties.orientation"
+            [p-step-icons]="properties.stepIcons"
+            [p-step-size]="properties.stepSize"
+            [p-step-icons]="true"
+            [p-steps]="steps" >
+
+
+          </po-stepper>
+
+        </div>
+
+        <div class="po-row info">
+          <po-info class="po-md-3 align-info" p-label="Nota Fiscal" [p-value]="rowItem.notafiscal"> </po-info>
+          <po-info class="po-md-2 align-info" p-label="Tabela de Preço" [p-value]="rowItem.tabela"> </po-info>
+
+          <po-info class="po-md-2 align-info" p-label="Condição Pgto" [p-value]="rowItem.condpag"> </po-info>
+
+          <po-info
+            class="po-md-2 align-info"
+            p-label="Data do Pedido"
+            [p-value]="formatarDataBrasileira(rowItem.emissao)"
+          >
+          </po-info>
+
+          <po-info
+            class="po-md-3 align-info"
+            p-label="Classificação"
+            [p-value]="rowItem.userclass.toUpperCase()"
+          ></po-info>
+        </div>
+      </po-widget>
+    </ng-template>-->
+    </app-table>
+  </div>
+</po-page-default>
+
+
+<po-modal
+  #modalExcluir
+  class="system-modal"
+  p-title="Excluir Unidade"
+  p-click-out="true"
+  p-size="xl"
+  [p-primary-action]="{ action:remove.bind(this), label: 'EXCLUIR', disabled: codigoDigitado !== codigoConfirmacao }"
+>
+  
+  <div class="po-alert po-alert-warning">
+    <span class="po-icon po-icon-warning"></span>
+    <strong>Atenção:</strong>
+    <div>Unidade Código: {{idUniddade}} - Essa ação também exclui todos os checklists aplicados nessas unidades.</div>
+  </div>
+
+  <p class="po-mt-2">
+    Digite o código <strong>{{ codigoConfirmacao }}</strong> para confirmar a exclusão das unidades.
+  </p>
+
+  <po-input
+    name="codigo"
+    label="Código"
+    [(ngModel)]="codigoDigitado"
+    p-required
+    p-placeholder="Código"
+  ></po-input>
+
+</po-modal>
+
+<po-modal
+  #modalAlterStatus
+  class="system-modal"
+  p-title="Alterar Status da Unidade"
+  p-click-out="true"
+  p-size="xl"
+  [p-primary-action]="{ action:alterStatus.bind(this), label: 'ALTERAR', disabled: codigoDigitado !== codigoConfirmacao }"
+>
+  
+
+  <div class="po-alert po-alert-warning" *ngIf="statusUniddade === 'Ativo'">
+
+    <span class="po-icon po-icon-warning"></span>
+    <strong>Atenção:</strong>
+    <div>Código: {{idUniddade}} - Desativar a Unidade ?.</div>
+  </div>
+  <div class="po-alert po-alert-warning" *ngIf="statusUniddade !== 'Ativo'">
+
+    <span class="po-icon po-icon-warning"></span>
+    <strong>Atenção:</strong>
+    <div>Unidade Código: {{idUniddade}} - Ativar a Unidade ?.</div>
+  </div>
+  
+  <p class="po-mt-2">
+    Digite o código <strong>{{ codigoConfirmacao }}</strong> para confirmar a alteração de Status das unidades.
+  </p>
+
+  <po-input
+    name="codigo"
+    label="Código"
+    [(ngModel)]="codigoDigitado"
+    p-required
+    p-placeholder="Código"
+  ></po-input>
+
+</po-modal>
+
+

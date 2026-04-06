@@ -1,0 +1,83 @@
+<header class="topbar">
+  <div class="brand">
+    <div class="brand-logo">
+      <img src="https://koalaenergy.com.br/img/general/logo.svg" alt="Koala Energy" />
+    </div>
+    <div>
+     <!-- <div class="brand-subtitle">{{ brandSubtitle }}</div>-->
+      <div class="brand-title">{{ brandTitle }}</div>
+    </div>
+  </div>
+
+  <div class="user-wrapper">
+    <div class="user-text">
+      <div class="user-company" *ngIf="userDisplay; else emptyUser">{{ userDisplay }}</div>
+      <ng-template #emptyUser><div class="user-company muted">Usuario nao identificado</div></ng-template>
+      <div class="user-meta-line">
+        <span class="user-meta">{{ groupDisplay }}</span>
+        <span class="user-meta-sep">·</span>
+        <span class="user-meta">{{ filialDisplay }}</span>
+      </div>
+    </div>
+
+    <button class="avatar-btn" type="button" (click)="toggleMenu()" aria-label="Abrir menu do usuario">
+      <span class="avatar">{{ userDisplay ? userDisplay[0] : '?' }}</span>
+    </button>
+
+    <div class="dropdown" *ngIf="menuOpen">
+      <div class="dropdown-label">Usuario</div>
+      <div class="dropdown-header">
+        <div class="avatar sm">{{ userDisplay ? userDisplay[0] : '?' }}</div>
+        <div>
+          <div class="dropdown-title">{{ userDisplay || 'Usuario nao identificado' }}</div>
+          <div class="dropdown-subtitle" *ngIf="papelDisplay">{{ papelDisplay }}</div>
+        </div>
+      </div>
+
+      <div class="dropdown-section">
+        <div class="dropdown-label">Grupo e filial</div>
+        <div class="dropdown-value" *ngIf="groupAndFilialCodeDisplay">{{ groupAndFilialCodeDisplay }}</div>
+        <div class="dropdown-subtitle" *ngIf="groupCodeDisplay">Grupo: {{ groupCodeDisplay }}</div>
+        <div class="dropdown-subtitle" *ngIf="filialCodeDisplay">Filial: {{ filialCodeDisplay }}</div>
+        <div class="dropdown-subtitle">{{ filialDisplay }}</div>
+        <po-button
+          class="config-button"
+          p-label="Trocar Grupo/Filial"
+          p-icon="po-icon-change"
+          p-type="primary"
+          (p-click)="openDialog()">
+        </po-button>
+      </div>
+
+      <div class="dropdown-section" *ngIf="codigoEquipamentoDisplay || setorDisplay || processoDisplay">
+        <div class="dropdown-label">Equipamento e processo</div>
+        <div class="dropdown-detail-list">
+          <div class="dropdown-value" *ngIf="codigoEquipamentoDisplay">Codigo Equipamento: {{ codigoEquipamentoDisplay }}</div>
+          <div class="dropdown-subtitle" *ngIf="setorDisplay">Setor: {{ setorDisplay }}</div>
+          <div class="dropdown-subtitle" *ngIf="processoDisplay">Processo: {{ processoDisplay }}</div>
+        </div>
+      </div>
+
+      <div class="dropdown-footer-actions">
+        <button class="dropdown-action" type="button" (click)="openParametros()">
+          <span class="icon">⚙</span>
+          <span>Parametros</span>
+        </button>
+
+        <button class="dropdown-action danger" type="button" (click)="logout()">
+          <span class="icon">↩</span>
+          <span>Sair</span>
+        </button>
+      </div>
+    </div>
+  </div>
+</header>
+
+<po-modal #poModal class="system-modal" p-title="Configurações" p-click-out="true" p-size="xl">
+  <po-dynamic-form [p-value]="formValue" (p-form)="getFormPedido($event)" [p-fields]="fields">
+  </po-dynamic-form>
+
+  <po-modal-footer>
+    <po-button p-label="Salvar" p-kind="primary" (p-click)="alterGrupo()"> </po-button>
+  </po-modal-footer>
+</po-modal>

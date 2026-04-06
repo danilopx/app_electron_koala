@@ -1,0 +1,19 @@
+:host {
+  display: block;
+  width: 100%;
+}
+
+.anonymous-login-button {
+  width: 100%;
+}
+
+.anonymous-login-button po-button {
+  display: block;
+  width: 100%;
+}
+
+:host ::ng-deep .anonymous-login-button .po-button {
+  width: 100% !important;
+  box-sizing: border-box !important;
+  padding: 0 !important;
+}

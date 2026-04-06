@@ -1,0 +1,111 @@
+:host ::ng-deep .producao-toolbar {
+  display: flex;
+  justify-content: flex-start;
+  margin-bottom: 12px;
+}
+
+:host ::ng-deep .producao-search {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 12px;
+  border: 1px solid #e5e7eb;
+  border-radius: 10px;
+  background: #ffffff;
+  box-shadow: 0 2px 8px rgba(15, 23, 42, 0.06);
+  width: 100%;
+}
+
+:host ::ng-deep .iot-search {
+  align-items: stretch;
+}
+
+:host ::ng-deep .iot-form {
+  width: 100%;
+}
+
+:host ::ng-deep .iot-pdf {
+  width: 100%;
+}
+
+:host ::ng-deep .iot-pdf-image {
+  width: auto;
+  height: auto;
+  max-width: none;
+  max-height: none;
+  flex: 0 0 auto;
+  align-self: center;
+  transform: scale(0.92);
+  transform-origin: center;
+}
+
+:host ::ng-deep .iot-zoom-modal .po-modal {
+  width: 100vw !important;
+  height: 100vh !important;
+  max-width: 100vw !important;
+  max-height: 100vh !important;
+  margin: 0 !important;
+  border-radius: 0 !important;
+}
+
+:host ::ng-deep .iot-zoom-modal .po-modal-container,
+:host ::ng-deep .iot-zoom-modal .po-modal-overlay,
+:host ::ng-deep .iot-zoom-modal .po-modal-content,
+:host ::ng-deep .iot-zoom-modal .po-modal-xl {
+  width: 100vw !important;
+  height: 100vh !important;
+  max-width: 100vw !important;
+  max-height: 100vh !important;
+}
+
+:host ::ng-deep .iot-zoom-modal .po-modal-container {
+  padding: 0 !important;
+}
+
+:host ::ng-deep .iot-zoom-modal .po-modal-vertical-align {
+  height: 100vh !important;
+  align-items: stretch !important;
+}
+
+:host ::ng-deep .iot-zoom-modal .po-modal-content {
+  display: flex;
+  flex-direction: column;
+  height: 100vh !important;
+}
+
+:host ::ng-deep .iot-zoom-modal .po-modal-body {
+  flex: 1 1 auto;
+  height: 100vh !important;
+  min-height: 0;
+  padding: 0 !important;
+  display: flex;
+  flex-direction: column;
+  overflow: auto;
+}
+
+:host ::ng-deep .iot-zoom-modal .po-modal-footer {
+  display: none !important;
+}
+
+:host ::ng-deep .iot-zoom-body {
+  flex: 1 1 auto;
+  width: 100%;
+  height: 100% !important;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  overflow: auto;
+  position: relative;
+}
+
+:host ::ng-deep .iot-zoom-modal .po-modal-body {
+  overflow: auto;
+  max-height: 80vh;
+}
+
+:host ::ng-deep .iot-zoom-body {
+  overflow: auto;
+}
+

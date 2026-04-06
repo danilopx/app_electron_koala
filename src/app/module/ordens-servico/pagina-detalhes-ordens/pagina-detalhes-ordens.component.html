@@ -1,0 +1,342 @@
+<po-page-default >
+
+  <po-loading-overlay *ngIf="loadingStart" [p-text]="'Atualizando Status da Ordem de Serviço.'"></po-loading-overlay>
+
+  <ng-container *ngIf="ordemServicoAtual">
+    <div class="po-grid-head-center">
+
+      <po-container>
+        <div lass="po-row">
+
+          <div class="po-md-3  po-text-left">
+            <font class="po-font-text-large-bold"> Ordem de Serviço: {{ ordemServicoAtual.ordem_id }} | {{
+              ordemServicoAtual.ordem_codsolicitacao }}</font>
+          </div>
+          <div class="po-md-3  po-text-left">
+            Empresa: {{ordemServicoAtual.ordem_filial}}
+          </div>
+
+          <div class="po-md-3  po-text-left">
+            Prioridade: {{prioridadeOS}}
+          </div>
+          <div class="po-md-3 po-text-left">
+            <po-button *ngIf="ordemServicoAtual.solicitacao_step === '2' && countExecutor !== 0 "
+              class="po-mb-2 po-pull-right po-m-1" p-icon="po-icon po-icon-arrow-right" p-label="Iniciar Atendimento"
+              (p-click)="eventIniciarAtendimento(ordemServicoAtual.ordem_filial,ordemServicoAtual.ordem_id)">
+            </po-button>
+            <po-button *ngIf="ordemServicoAtual.solicitacao_step === '3' " class="po-mb-2 po-pull-right po-m-1"
+              p-icon="po-icon po-icon-arrow-right" p-label="Finalizar Atendimento"
+              (p-click)="eventFinalizarAtendimento(ordemServicoAtual.solicitacao_descricao ?? '')">
+            </po-button>
+            <po-button
+              *ngIf="(ordemServicoAtual.solicitacao_step === '1' || ordemServicoAtual.solicitacao_step === '2' || ordemServicoAtual.solicitacao_step === '3') && countExecutor !== 0"
+              class="po-mb-2 po-pull-right po-m-1" p-icon="po-icon po-icon-arrow-right"
+              p-label="Alterar Tipo de Manutenção" (p-click)="eventAlterarTipo()">
+            </po-button>
+          </div>
+        </div>
+
+      </po-container>
+
+      <!-- Segunda Linha: Dados da O.S. -->
+
+      <po-container class="po-m-3">
+
+        <po-tabs>
+          <po-tab p-label="Ordem de Serviço" [p-active]="true">
+            <po-container>
+              <div class="po-row info">
+                <po-info class="po-md-3 align-info" p-label="Empresa:"
+                  [p-value]=" ordemServicoAtual.solicitacao_filial">
+                </po-info>
+
+                <po-info class="po-md-3 align-info" p-label="Setor:"
+                  [p-value]="ordemServicoAtual.ordem_codsetor +'-'+ordemServicoAtual.setor_nome">
+                </po-info>
+                <po-info class="po-md-3 align-info" p-label="Equipamento:"
+                  [p-value]="ordemServicoAtual.equipamento_id+'-'+ordemServicoAtual.equipamento_nome">
+                </po-info>
+                <po-info class="po-md-3 align-info" p-label="Prioridade:"
+                  [p-value]="ordemServicoAtual.solicitacao_prioridade2?.toUpperCase()"></po-info>
+
+
+
+                <po-info class="po-md-3 align-info" p-label="Solicitante:"
+                  [p-value]="ordemServicoAtual.solicitacao_usuario?.toUpperCase()"></po-info>
+
+                <po-info class="po-md-3 align-info" p-label="Executor Responsável:"
+                  [p-value]="ordemServicoAtual.executor_matricula+'-'+ordemServicoAtual.executor_nome?.toUpperCase()"></po-info>
+                <po-info class="po-md-3 align-info" p-label="Tipo"
+                  [p-value]="ordemServicoAtual.ordem_cod_servico"></po-info>
+
+                <po-info class="po-md-3 align-info" p-label="Status"
+                  [p-value]="getStatusDescriptionFromString(ordemServicoAtual.solicitacao_step ?? '')"></po-info>
+
+
+                <po-info class="po-md-4 align-info" p-label="Data Abertura:"
+                  *ngIf="ordemServicoAtual.solicitacao_databer!.trim() !== ''; else noData"
+                  [p-value]="formatarDataBrasileira(ordemServicoAtual.solicitacao_databer??'') + ' ' + ordemServicoAtual.ordem_data">
+                  > </po-info>
+                <ng-template #noData>
+                  <po-info class="po-md-4 align-info" p-label="Data Abertura:"
+                    [p-value]="formatarDataBrasileira(ordemServicoAtual.ordem_data??'') + ' ' + ordemServicoAtual.solicitacao_horaber">
+                    > </po-info>
+                </ng-template>
+
+                <po-info class="po-md-4 align-info" p-label="Data Inicio da Manutenção:"
+                  [p-value]="formatarDataBrasileira(ordemServicoAtual.ordem_data_real_inicio_manutencao??'') +' '+ordemServicoAtual.ordem_hora_real_inicio_manutencao"></po-info>
+
+                <po-info class="po-md-4 align-info" p-label="Data Final da Manutenção:"
+                  [p-value]="formatarDataBrasileira(ordemServicoAtual.ordem_data_real_fim_manutencao??'')+' '+ordemServicoAtual.ordem_hora_real_fim_manutencao"></po-info>
+
+
+
+
+                <po-info class="po-md-12 align-info" p-label="Descrição do Incidente:"
+                  [p-value]="ordemServicoAtual.solicitacao_descricao"></po-info>
+                <po-info class="po-md-4 align-info" p-label="Descrição da Problema:"
+                  [p-value]="ordemServicoAtual.ordem_problema"></po-info>
+                <po-info class="po-md-4 align-info" p-label="Descrição da Causa:"
+                  [p-value]="ordemServicoAtual.ordem_causa"></po-info>
+
+                <po-info class="po-md-4 align-info" p-label="Descrição da Solução:"
+                  [p-value]="ordemServicoAtual.ordem_solucao"></po-info>
+
+                <po-info class="po-md-4 align-info" p-label="Aprovação Manuenção:"
+                  [p-value]="ordemServicoAtual.ordem_avaliacao === '' ? '' : ordemServicoAtual.ordem_avaliacao === 'A'?'Aprovado':'Reprovado'"></po-info>
+
+
+                <po-info class="po-md-4 align-info" p-label="Qualidade e resolução do problema?"
+                  [p-value]="ordemServicoAtual.solicitacao_qualidade"></po-info>
+
+                <po-info class="po-md-4 align-info" p-label="Satisfação e prazo de atendimento?"
+                  [p-value]="ordemServicoAtual.solicitacao_satisfacao"></po-info>
+
+
+              </div>
+
+            </po-container>
+
+
+            <!--  
+
+              <po-dynamic-view [p-fields]="camposDynamicView" [p-value]="valoresCamposDynamicView"></po-dynamic-view>
+
+            </po-container>
+
+          -->
+
+          </po-tab>
+
+          <po-tab p-label="Executores">
+            <po-container>
+              <po-button class="po-sm-12" p-icon="fa fa-check-circle" p-label="Adicionar Executores"
+                (p-click)="abrirModalAdicionarExecutor()"></po-button>
+
+              <po-modal #poModalAdicionarExec class="system-modal" p-title="Adicionar Executor" p-click-out="true" p-size="xl">
+
+
+                <po-dynamic-form class="po-md-12" #formDistribuicao [p-fields]="fieldsFormDistribuicao">
+
+                </po-dynamic-form>
+
+                <po-button class="po-md-12 po-mt-2" p-label="Novo Executor" p-icon="fa fa-share-square-o"
+                  [p-disabled]="!formDistribuicao.form.valid || buttonDisabled"
+                  (p-click)="novoExecutor(ordemServicoAtual, formDistribuicao)">
+                </po-button>
+              </po-modal>
+
+              <div class="table-card">
+  <app-table [p-columns]="colunasExecutoresDaOs" [p-items]="executoresDaOs"
+                [p-spacing]="PoTableColumnSpacing.Large" [p-striped]="true" [p-sort]="true" [p-selectable]="false"
+                p-actions-right="true" [p-actions]="actions">
+
+              </app-table>
+</div>
+
+            </po-container>
+
+
+          </po-tab>
+
+
+          <po-tab p-label="Insumos">
+            <po-container>
+
+
+
+              <po-button class="po-sm-12" p-icon="fa fa-check-circle" p-label="Adicionar Insumo"
+                (p-click)="abrirModalAdicionarInsumo()"></po-button>
+
+              <po-modal #poModalAdicionarInsumos class="system-modal" p-title="Adicionar Insumo" p-click-out="true" p-size="xl">
+
+                <!-- Template para o caso de loading -->
+                <ng-template #carregandoProdutosHtml>
+                  <!-- Substitua este comentário pelo seu componente de loading ou qualquer HTML que represente o loading -->
+                  <p>Carregando...</p>
+                </ng-template>
+
+                <!-- PS: Não use um método para as `columns` e nem para os `items`, senão trava. -->
+                <div class="table-card">
+  <app-table *ngIf="produtosCarregados; else carregandoProdutosHtml" #tabelaAdicionarInsumos
+                  [p-columns]="colunasAdicionarInsumos" [p-items]="produtos" [p-loading]="carregandoProdutos"
+                  [p-hide-columns-manager]="true" [p-selectable-entire-line]="true" [p-selectable]="true"
+                  [p-single-select]="true" [p-container]="'shadow'" [p-sort]="true" [p-hide-batch-actions]="true"
+                  [p-height]="300" [p-hide-table-search]="false" (p-selected)="aoSelecionarInsumo($event)"
+                  (p-unselected)="insumoSelecionado = false"></app-table>
+</div>
+
+                <div class="po-row">
+
+                  <po-input class="po-sm-12 po-mt-1" p-label="Quantidade" p-placeholder="Digite a quantidade"
+                    p-mask="999" [p-minlength]="1" [(ngModel)]="quantidadeProdutoSelecionado"
+                    (p-change)="aoInserirQuantidade()"></po-input>
+
+                  <po-button class="po-sm-12 po-mt-1" p-icon="fa fa-check-circle"
+                    [p-disabled]="!validarBotaoAdicionarInsumos()" p-label="Adcionar Insumo"
+                    (p-click)="incluirInsumoNaOS()"></po-button>
+
+                </div>
+
+                <po-loading-overlay *ngIf="loadingInclusaoInsumo"></po-loading-overlay>
+
+
+              </po-modal>
+
+
+              <!-- Label: Valor que aparece ao selecionar. -->
+              <!-- Value: Valor que vai ficar salvo ao selecionar. -->
+              <!-- Lista de Insumos / Tabela de Insumos -->
+
+              <!-- Não aparece se ter valores divergentes dos dados recebidos. -->
+
+              <div class="table-card">
+  <app-table [p-columns]="colunasInsumosDaOs" [p-items]="insumosDaOs"
+                [p-spacing]="PoTableColumnSpacing.Large" [p-striped]="true" [p-sort]="true" [p-actions]="actions"
+                p-actions-right="true">
+
+              </app-table>
+</div>
+
+            </po-container>
+
+
+          </po-tab>
+          <po-tab p-label="Comentários">
+
+
+            <po-container class="po-mt-1">
+              <form #formEmail="ngForm">
+                <po-textarea class="po-sm-12" name="comentarioOs" [(ngModel)]="comentarioOs" p-label="Acompanhamento"
+                  [p-rows]="2"></po-textarea>
+
+                <!-- Botão que Adiciona o Comentário... Fica Disabled se a string do campo está vazia. -->
+                <po-button class="po-md-4 po-mt-2 po-mb-2" p-icon="fa fa-check-circle" p-label="Incluir Comentário"
+                  (p-click)="adicionarComentario()"
+                  [p-disabled]="!comentarioOs || comentarioOs.trim().length === 0"></po-button>
+
+              </form>
+
+              <!-- Seção de Listagem de Comentários -->
+              <!-- Itero numa Lista de Comentários do tipo da Interface Definida. -->
+              <!-- Renderizo dinâmicamente só se houverem comentários, com a diretiva do Angular *ngIf. -->
+              <!-- Uso um `if` adicional pra evitar o erro TS2532: Possibly 'undefined'-->
+
+              <div *ngIf="comentarios && comentarios.comentarios && comentarios.comentarios.length > 0">
+                <div *ngFor="let comentario of comentarios.comentarios">
+                  <po-divider></po-divider>
+
+                  <div class="comentario-info po-table-header-flex">
+                    <div class="comentario-autor po-font-text-bold">{{ comentario.comentario_os_seq +' - '+
+                      comentario.comentario_os_usuario }}</div>
+                    <div class="comentario-data">{{ comentario.comentario_os_data | transformarDataYYYYMMDD }}</div>
+                    <div class="comentario-hora">{{ comentario.comentario_os_hora }}</div>
+                  </div>
+                  <div class="comentario-texto po-text-left">{{ comentario.comentario_os_texto }}</div>
+                </div>
+              </div>
+
+              <po-divider></po-divider>
+            </po-container>
+
+
+
+          </po-tab>
+          <po-tab p-label="Imagens">
+
+
+            <div *ngFor="let imagem of imagens">
+
+
+              <div *ngFor="let url of imagem.imagem_os_url" class="image-item">
+                <div class="po-md-3">
+                  <po-image [p-src]="'data:image/jpeg;base64,'+url.imagem_os_base64" p-alt="" [p-height]="300"> </po-image>
+                  <p>Imagem: {{url.imagem_os_seq}} - Data: {{formatarDataBrasileira(url.imagem_os_data)}}
+                    {{formatarHora(url.imagem_os_hora)}}</p>
+
+                </div>
+              </div>
+            </div>
+
+
+          </po-tab>
+
+        </po-tabs>
+
+
+
+
+
+      </po-container>
+
+
+
+
+      <!-- Seção de Comentários -->
+
+
+    </div>
+  </ng-container>
+</po-page-default>
+
+<!-- Modal de Detalhes -->
+<po-modal #modalDetalhes
+  class="system-modal"
+  p-title="Detalhes da Ordem"
+  p-click-out="true"
+  p-size="xl"
+  [p-primary-action]="{ action: salvarDetalhes.bind(this,ordemServicoAtual.ordem_filial,ordemServicoAtual.ordem_id), label: 'Salvar' }"
+  [p-secondary-action]="{ action: cancelarDetalhes.bind(this), label: 'Cancelar' }">
+  <div class="po-row">
+    <po-textarea class="po-md-12" p-label="Problema" [(ngModel)]="problema" p-placeholder="Digite o problema"
+      [p-auto-focus]="true" [p-maxlength]="maxlength" [p-minlength]="minlength" [p-required]="true"
+      p-help="* Obrigatório, máximo de 250 caracter.">
+    </po-textarea>
+    <po-textarea class="po-md-12" p-label="Causa" [(ngModel)]="causa" p-placeholder="Digite a causa" [p-required]="true"
+      [p-minlength]="minlength" [p-maxlength]="maxlength" p-help="* Obrigatório, máximo de 250 caracter.">
+    </po-textarea>
+    <po-textarea class="po-md-12" p-label="Solução" [(ngModel)]="solucao" p-placeholder="Digite a solução"
+      [p-required]="true" [p-minlength]="minlength" [p-maxlength]="maxlength"
+      p-help="* Obrigatório, máximo de 250 caracter.">
+    </po-textarea>
+  </div>
+</po-modal>
+
+<po-modal #modalTipo
+  class="system-modal"
+  p-title="Tipo de Manutenção"
+  p-click-out="true"
+  p-size="xl"
+  [p-primary-action]="{ action: salvarTipo.bind(this,ordemServicoAtual.ordem_filial,ordemServicoAtual.ordem_id), label: 'Salvar' }"
+  [p-secondary-action]="{ action: cancelarTipo.bind(this), label: 'Cancelar' }">
+  <div class="po-row">
+    <po-combo class="po-md-12" p-label="Tipo de Manutenção" [ngModel]="tipo"
+    (ngModelChange)="tipo = $event"
+       [p-options]="tipoOptions" [p-required]="true"
+       p-help="* Obrigatório, selecione uma opção.">
+    </po-combo>
+
+
+  </div>
+</po-modal>
+

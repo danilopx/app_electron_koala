@@ -1,0 +1,50 @@
+<div class="sidebar-wrapper" [class.collapsed]="collapsed">
+  <nav class="sidebar" [class.collapsed]="collapsed">
+    <ul>
+      <ng-container *ngFor="let item of menus">
+        <li *ngIf="!item.subItems?.length" [routerLinkActive]="item.link ? 'active' : ''" [routerLinkActiveOptions]="{ exact: true }">
+          <ng-container *ngIf="item.link; else actionItem">
+            <a [routerLink]="item.link">
+              <span class="item-icon">{{ shortLabel(item) }}</span>
+              <span class="item-label">{{ item.label }}</span>
+            </a>
+          </ng-container>
+          <ng-template #actionItem>
+            <button class="menu-action" type="button" (click)="handleAction(item)">
+              <span class="item-icon">{{ shortLabel(item) }}</span>
+              <span class="item-label">{{ item.label }}</span>
+            </button>
+          </ng-template>
+        </li>
+
+        <li *ngIf="item.subItems?.length" class="group" [class.open]="isGroupExpanded(item.label || '')">
+          <button class="group-toggle" type="button" (click)="toggleGroup(item.label || '')">
+            <span class="item-icon">{{ shortLabel(item) }}</span>
+            <span class="item-label">{{ item.label }}</span>
+            <span class="group-arrow" aria-hidden="true">▾</span>
+          </button>
+          <ul class="sub-list" *ngIf="isGroupExpanded(item.label || '')">
+            <li *ngFor="let child of item.subItems" routerLinkActive="active" [routerLinkActiveOptions]="{ exact: true }">
+              <a [routerLink]="child.link">
+                <span class="item-icon">{{ shortLabel(child) }}</span>
+                <span class="item-label">{{ child.label }}</span>
+              </a>
+            </li>
+          </ul>
+        </li>
+      </ng-container>
+    </ul>
+  </nav>
+  <button
+    type="button"
+    class="collapse-button"
+    (click)="toggleCollapse()"
+    [attr.aria-label]="collapsed ? 'Expandir menu' : 'Recolher menu'">
+    <span
+      class="po-icon"
+      [class.po-icon-arrow-right]="collapsed"
+      [class.po-icon-arrow-left]="!collapsed"
+      aria-hidden="true">
+    </span>
+  </button>
+</div>

@@ -1,0 +1,27 @@
+<po-page-default>
+  <div class="po-row po-mb-2">
+    <div class="po-sm-8 "></div>
+    <po-button class="po-sm-2" p-icon="po-icon po-icon-close" (p-click)="voltar()" p-label="Sair"> </po-button>
+    <po-button
+      class="po-sm-2"
+      p-icon="po-icon po-icon-ok"
+      (p-click)="submitForm()"
+      [p-loading]="buttonPRG"
+      p-label="Salvar"
+      
+    >
+    </po-button>
+  </div>
+ 
+
+ <div class="po-alert po-alert-info" >
+    <span class="po-icon po-icon-info"></span>
+    <strong>Informação:</strong>
+     <div>Unidades representam o que será avaliado no checklist, podendo ser um uma empresa, setor, equipamento, normas, automóvel, entre outros.</div>
+  </div>
+
+  <po-divider></po-divider>
+
+  <po-dynamic-form  #dynamicForm  (ngSubmit)="onSubmit($event)" [p-fields]="fields"> </po-dynamic-form>
+</po-page-default>
+

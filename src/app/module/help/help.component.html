@@ -1,0 +1,21 @@
+<div class="help-page">
+  <po-container [p-no-border]="true" class="po-m-2">
+    <section class="help-hero">
+      <span class="help-eyebrow">Help</span>
+      <h2 class="help-title">Guia das Rotinas</h2>
+      <p class="help-description">
+        Pagina criada para centralizar a descricao das rotinas e facilitar o uso pelos usuarios.
+      </p>
+    </section>
+
+    <section class="help-grid">
+      <article class="help-card" *ngFor="let section of sections">
+        <h3>{{ section.title }}</h3>
+        <p>{{ section.description }}</p>
+        <ul>
+          <li *ngFor="let item of section.items">{{ item }}</li>
+        </ul>
+      </article>
+    </section>
+  </po-container>
+</div>

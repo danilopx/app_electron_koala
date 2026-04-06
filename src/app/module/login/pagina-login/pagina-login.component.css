@@ -1,0 +1,160 @@
+:host {
+  --color-action-default: rgb(31, 122, 224);
+  --color-action-hover: rgb(24, 98, 179);
+  --color-action-pressed: rgb(19, 78, 142);
+  --color-action-focus: rgb(24, 98, 179);
+  --color-page-login-header-welcome-color: rgb(31, 122, 224);
+  --color-brand-01-lightest: rgb(225, 237, 251);
+  --color-brand-01-lighter: rgb(191, 215, 246);
+  --color-brand-01-light: rgb(123, 176, 235);
+  --color-brand-01-base: rgb(31, 122, 224);
+  --color-brand-01-dark: rgb(24, 98, 179);
+  --color-brand-01-darker: rgb(19, 78, 142);
+  color: rgb(31, 122, 224);
+}
+
+.main-container {
+  min-height: 100vh;
+  position: relative;
+}
+
+po-page-login {
+  color: rgb(31, 122, 224);
+}
+
+:host ::ng-deep .po-page-login-container {
+  min-height: 100vh;
+  height: 100vh;
+}
+
+.po-page-login-header-welcome {
+  color: rgb(31, 122, 224);
+}
+
+.login-error {
+  position: fixed;
+  left: 50%;
+  bottom: 20px;
+  transform: translateX(-50%);
+  z-index: 60;
+  margin-top: 12px;
+  padding: 10px 12px;
+  border-radius: 4px;
+  background-color: rgb(225, 237, 251);
+  color: rgb(31, 122, 224);
+  border: 1px solid rgb(191, 215, 246);
+}
+
+.password-change-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 2000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+  background: rgba(12, 18, 28, 0.55);
+  backdrop-filter: blur(2px);
+}
+
+.password-change-modal {
+  width: min(100%, 560px);
+  max-height: calc(100vh - 48px);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  border-radius: 16px;
+  background: #ffffff;
+  box-shadow: 0 24px 80px rgba(0, 0, 0, 0.25);
+  border: 1px solid rgba(27, 40, 61, 0.08);
+}
+
+.password-change-modal__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 20px 24px 16px;
+  border-bottom: 1px solid #e3e8ef;
+}
+
+.password-change-modal__title {
+  margin: 0;
+  font-size: 18px;
+  line-height: 1.2;
+  font-weight: 700;
+  color: #172033;
+}
+
+.password-change-modal__close {
+  width: 36px;
+  height: 36px;
+  border: 0;
+  border-radius: 999px;
+  background: #f3f6fa;
+  color: #64748b;
+  font-size: 24px;
+  line-height: 1;
+  cursor: pointer;
+}
+
+.password-change-modal__close:hover {
+  background: #e9eef5;
+  color: #0f172a;
+}
+
+.password-change-modal__content {
+  display: grid;
+  gap: 14px;
+  padding: 20px 24px 8px;
+  overflow: auto;
+}
+
+.password-change-modal__error {
+  margin-top: 4px;
+  padding: 10px 12px;
+  border-radius: 8px;
+  background: #fff2f2;
+  border: 1px solid #f0b8b8;
+  color: #b42318;
+}
+
+.password-change-modal__footer {
+  display: flex;
+  justify-content: flex-end;
+  gap: 12px;
+  padding: 16px 24px 20px;
+  border-top: 1px solid #e3e8ef;
+  background: #fbfcfe;
+}
+
+:host ::ng-deep .password-change-modal po-input,
+:host ::ng-deep .password-change-modal po-password {
+  width: 100%;
+}
+
+:host ::ng-deep .password-change-modal po-input .po-input,
+:host ::ng-deep .password-change-modal po-password .po-input {
+  width: 100%;
+}
+
+.login-anonimo-inline {
+  display: block;
+  position: fixed;
+  transform: translateX(-50%);
+  z-index: 61;
+  box-sizing: border-box;
+}
+
+:host ::ng-deep app-login-anonimo.login-anonimo-inline .anonymous-login-button,
+:host ::ng-deep app-login-anonimo.login-anonimo-inline .anonymous-login-button po-button,
+:host ::ng-deep app-login-anonimo.login-anonimo-inline .anonymous-login-button .po-button {
+  width: 100% !important;
+  max-width: 100% !important;
+  min-width: 100% !important;
+  height: var(--anon-height, 36px) !important;
+  min-height: var(--anon-height, 36px) !important;
+  line-height: var(--anon-height, 36px) !important;
+  margin: 0 !important;
+  box-sizing: border-box !important;
+}

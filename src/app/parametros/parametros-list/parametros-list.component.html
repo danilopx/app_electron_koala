@@ -1,0 +1,131 @@
+<div class="parametros-page">
+  <po-page-default>
+    <po-container [p-no-border]="true" [p-no-padding]="true" class="po-m-2">
+      <div class="table-card">
+        <app-table
+          [p-items]="filteredParametros"
+          [p-hide-columns-manager]="true"
+          p-container="true"
+          [p-selectable]="false"
+          [p-sort]="true"
+          [p-striped]="true"
+          [p-literals]="customLiterals"
+          [p-loading]="loading"
+          [p-columns]="columns"
+          [p-max-columns]="8"
+          [p-page]="currentPage"
+          [p-page-size]="pageSize"
+        >
+          <div app-table-filters class="minuta-filters">
+            <div class="filter-field">
+              <label for="parametroNome">Parâmetro</label>
+              <input id="parametroNome" type="text" [(ngModel)]="filterParametro" placeholder="PR_APIPROTHEUS" />
+            </div>
+            <div class="filter-field">
+              <label for="parametroDescricao">Descrição</label>
+              <input id="parametroDescricao" type="text" [(ngModel)]="filterDescricao" placeholder="Filtro por descrição" />
+            </div>
+            <div class="filter-field">
+              <label for="parametroStatus">Status</label>
+              <select id="parametroStatus" [(ngModel)]="filterStatus">
+                <option value="ativos">Ativos</option>
+                <option value="deletados">Deletados</option>
+                <option value="todos">Todos</option>
+              </select>
+            </div>
+            <div class="filter-actions">
+              <po-button p-label="Filtrar" p-kind="primary" (p-click)="applyFilters()"></po-button>
+              <po-button p-label="Limpar" p-kind="secondary" (p-click)="clearFilters()"></po-button>
+            </div>
+          </div>
+
+          <ng-template p-table-column-template let-value let-row="row" [p-property]="'created_at'">
+            {{ formatDateTime(row.created_at) }}
+          </ng-template>
+
+          <ng-template p-table-column-template let-value let-row="row" [p-property]="'updated_at'">
+            {{ formatDateTime(row.updated_at) }}
+          </ng-template>
+
+          <ng-template p-table-column-template let-value let-row="row" [p-property]="'valor'">
+            {{ displayParametroValor(row) }}
+          </ng-template>
+
+          <ng-template p-table-column-template let-value let-row="row" [p-property]="'acoes'">
+            <po-button
+              class="parametro-edit-button"
+              p-icon="po-icon-edit"
+              p-label="Editar"
+              p-kind="secondary"
+              (p-click)="editParametro(row)">
+            </po-button>
+          </ng-template>
+        </app-table>
+      </div>
+    </po-container>
+  </po-page-default>
+</div>
+
+<po-modal
+  #parametroModal
+  [p-title]="editingParametro ? 'Editar Parâmetro' : 'Novo Parâmetro'"
+  [p-primary-action]="{ label: 'Salvar', action: saveParametro.bind(this) }"
+  [p-secondary-action]="{ label: 'Cancelar', action: closeModal.bind(this) }">
+
+  <po-container>
+    <po-input
+      name="parametro"
+      p-label="Parâmetro"
+      [p-disabled]="editingParametro ? 'true' : 'false'"
+      [(ngModel)]="formParametro.parametro">
+    </po-input>
+
+    <po-password
+      *ngIf="isSensitiveParametro(formParametro.parametro); else parametroValueField"
+      name="valor"
+      p-label="Valor"
+      [(ngModel)]="formParametro.valor"
+      [p-no-autocomplete]="true"
+      p-placeholder="Informe a nova senha">
+    </po-password>
+
+    <ng-template #parametroValueField>
+      <div class="parametro-boolean-field" *ngIf="isBooleanParametroValue(formParametro.valor); else textValueField">
+      <span class="parametro-boolean-field__label">Valor</span>
+      <div class="parametro-boolean-toggle">
+        <button
+          type="button"
+          class="parametro-boolean-toggle__button"
+          [class.is-active]="formParametro.valor === 'true'"
+          (click)="setBooleanParametroValue(true)">
+          True
+        </button>
+        <button
+          type="button"
+          class="parametro-boolean-toggle__button"
+          [class.is-active]="formParametro.valor === 'false'"
+          (click)="setBooleanParametroValue(false)">
+          False
+        </button>
+      </div>
+    </div>
+
+      <ng-template #textValueField>
+        <po-textarea
+          name="valor"
+          p-label="Valor"
+          [(ngModel)]="formParametro.valor"
+          [p-rows]="3">
+        </po-textarea>
+      </ng-template>
+    </ng-template>
+
+    <po-textarea
+      name="descricao"
+      p-label="Descrição"
+      [(ngModel)]="formParametro.descricao"
+      [p-rows]="2">
+    </po-textarea>
+
+  </po-container>
+</po-modal>

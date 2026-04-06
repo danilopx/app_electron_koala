@@ -1,0 +1,91 @@
+.linha-vertical-azul {
+  border-left: 12px solid rgb(86, 204, 242);
+  background-color: rgb(255, 255, 255);
+  padding: 12px;
+  border-radius: 4px;
+}
+
+.row-parte-cima {
+  border-top: unset;
+  border-right: unset;
+  border-bottom: unset;
+  border-image: unset;
+  grid-area: abstract;
+  display: grid;
+  grid-template-columns: 0.5fr 2fr 2fr 2fr 0.5fr;
+  flex-direction: row;
+  -webkit-box-align: center;
+  align-items: center;
+  padding: 12px;
+  border-radius: 4px;
+}
+
+.div-barra-de-progresso-os {
+  display: grid;
+  grid-template-columns: 4fr 1fr;
+  padding: 0 12px;
+  -webkit-box-align: center;
+  align-items: center;
+}
+
+.barra-de-progresso-os {
+  position: relative;
+  font-size: 100%;
+  color: #212121;
+  flex: 1 1 0;
+  border-radius: 6px;
+  background-color: rgb(189, 189, 189)!important;
+  height: 12px!important;
+  overflow: hidden;
+}
+
+.status-da-os {
+  font-size: 100%;
+  color: #212121;
+  flex: 1 1 0;
+  display: flex;
+  flex-direction: row;
+  -webkit-box-align: center;
+  align-items: center;
+  justify-content: right;
+}
+
+.background-status-os {
+  font-size: 100%;
+  padding: 0.1rem 0.5rem;
+  max-height: 1.3rem;
+  display: inline-block;
+  border-radius: 4px;
+  background-color: rgb(86, 204, 242);
+  color: rgb(255, 255, 255);
+}
+
+.texto-status-os {
+  color: rgb(255, 255, 255);
+  margin: 0;
+  font-family: "Roboto", "Helvetica", "Arial", sans-serif;
+  font-weight: 400;
+  line-height: 1.43;
+  letter-spacing: 0.01071em;
+  font-size: 0.875rem;
+}
+
+:host {
+  display: block;
+}
+
+:host ::ng-deep .po-grid-head-center > .po-container {
+  margin-bottom: 12px;
+}
+
+:host ::ng-deep .po-grid-head-center > .po-container:last-child {
+  margin-bottom: 0;
+}
+
+/* Evita efeito de borda dupla nas abas dentro do modal */
+:host ::ng-deep .po-tab-content .po-container {
+  border: none !important;
+  box-shadow: none !important;
+  background: transparent !important;
+  padding: 6px 0 0 !important;
+}

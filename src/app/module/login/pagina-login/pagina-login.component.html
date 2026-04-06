@@ -1,0 +1,93 @@
+<div class="main-container">
+  <po-page-login
+    [p-literals]="loginLiterals"
+    [p-languages]="loginLanguages"
+    [p-loading]="loading"
+    (p-login-submit)="loginSubmit($event)"
+    p-logo="https://koalaenergy.com.br/img/general/logo.svg"
+    p-background="https://koalaenergy.com.br/img/blog_post/photo/135.jpg"
+    p-product-name="Koala Energy"
+    p-contact-email="suporte@simplifysolucoes.com.br"
+    p-environment=""
+    [p-hide-remember-user]="true">
+  </po-page-login>
+
+  <div *ngIf="erroLogin" class="login-error">
+    {{ erroLogin }}
+  </div>
+
+  <div
+    *ngIf="passwordChangeOpen"
+    class="password-change-overlay"
+    role="presentation"
+    (click)="closePasswordChangeModal()">
+    <div
+      class="password-change-modal"
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="passwordChangeTitle"
+      (click)="$event.stopPropagation()">
+      <div class="password-change-modal__header">
+        <h2 id="passwordChangeTitle" class="password-change-modal__title">Senha expirada</h2>
+        <button type="button" class="password-change-modal__close" (click)="closePasswordChangeModal()" aria-label="Fechar">
+          ×
+        </button>
+      </div>
+
+      <div class="password-change-modal__content">
+        <po-input
+          id="passwordChangeUser"
+          name="passwordChangeUser"
+          p-label="Usuário"
+          [(ngModel)]="passwordChangeForm.user"
+          p-readonly="true">
+        </po-input>
+
+        <po-password
+          id="passwordChangeOldPassword"
+          name="passwordChangeOldPassword"
+          p-label="Senha atual"
+          [(ngModel)]="passwordChangeForm.oldPassword"
+          [p-no-autocomplete]="true">
+        </po-password>
+
+        <po-password
+          id="passwordChangeNewPassword"
+          name="passwordChangeNewPassword"
+          p-label="Nova senha"
+          [(ngModel)]="passwordChangeForm.newPassword"
+          [p-no-autocomplete]="true">
+        </po-password>
+
+        <po-password
+          id="passwordChangeConfirmPassword"
+          name="passwordChangeConfirmPassword"
+          p-label="Confirmar nova senha"
+          [(ngModel)]="passwordChangeForm.confirmPassword"
+          [p-no-autocomplete]="true">
+        </po-password>
+
+        <div *ngIf="passwordChangeError" class="password-change-modal__error">
+          {{ passwordChangeError }}
+        </div>
+      </div>
+
+      <div class="password-change-modal__footer">
+        <po-button
+          p-label="Cancelar"
+          p-kind="secondary"
+          [p-disabled]="passwordChangeLoading"
+          (p-click)="closePasswordChangeModal()">
+        </po-button>
+        <po-button
+          p-label="Alterar senha"
+          p-kind="primary"
+          [p-loading]="passwordChangeLoading"
+          [p-disabled]="passwordChangeLoading"
+          (p-click)="submitPasswordChange()">
+        </po-button>
+      </div>
+    </div>
+  </div>
+
+</div>

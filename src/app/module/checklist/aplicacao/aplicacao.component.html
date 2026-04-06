@@ -1,0 +1,81 @@
+<po-page-default>
+
+    <div class="po-row">
+  
+      <!-- Menu lateral -->
+      <div class="po-md-3">
+        <!-- <po-menu [p-menus]="menu"></po-menu>-->
+  
+        <div style="margin-top: 24px;">
+          <po-button p-label="Ver Pendências" p-type="link"></po-button>
+          <po-button p-label="Continuar depois" p-type="secondary"   class="po-mt-2" block></po-button>
+          <po-button p-label="Concluir checklist" p-type="primary" class="po-mt-2" block></po-button>
+        </div>
+      </div>
+  
+      <!-- Conteúdo principal -->
+      <div class="po-md-9">
+  
+        <!-- PERGUNTA 1 -->
+        <div class="po-widget">
+          <div class="po-widget-header">
+            <strong>Peso 1</strong> | A quantidade de materiais de trabalho estão adequadas ao uso, sem excesso? <span class="po-text-danger">*</span>
+          </div>
+          <div class="po-row po-mt-2 po-mb-2">
+            <div class="po-md-2" *ngFor="let icon of icones">
+              <po-button
+                [p-label]="icon.label"
+                [p-icon]="icon.icon"
+                p-type="secondary"
+                block>
+              </po-button>
+            </div>
+          </div>
+          <div class="po-row">
+            <div class="po-md-6">
+              <po-field-container>
+                <po-textarea p-label="Comentar"></po-textarea>
+              </po-field-container>
+            </div>
+            <div class="po-md-6">
+              <po-upload p-label="Anexar" [p-url]="'/api/upload'" [p-auto-upload]="false"></po-upload>
+            </div>
+          </div>
+        </div>
+  
+        <!-- PERGUNTA 2 -->
+        <div class="po-widget po-mt-4">
+          <div class="po-widget-header">
+            <strong>Peso 1</strong> | Existem processos ou tarefas que você faz, mas acha que não deveria fazer? <span class="po-link">(ver dica)</span>
+          </div>
+          <div class="po-row po-mt-2 po-mb-2">
+            <div class="po-md-3">
+              <po-button p-label="NÃO" p-type="secondary" block></po-button>
+            </div>
+            <div class="po-md-3">
+              <po-button p-label="SIM" p-type="secondary" block></po-button>
+            </div>
+          </div>
+          <div class="po-row">
+            <div class="po-md-6">
+              <po-field-container>
+                <po-textarea p-label="Comentar"></po-textarea>
+              </po-field-container>
+            </div>
+            <div class="po-md-6">
+              <po-upload p-label="Anexar" [p-url]="'/api/upload'" [p-auto-upload]="false"></po-upload>
+            </div>
+          </div>
+        </div>
+  
+        <!-- Navegação -->
+        <div class="po-row po-mt-4 po-justify-space-between">
+          <po-button p-label="Anterior" p-type="secondary"></po-button>
+          <div>2 de 5</div>
+          <po-button p-label="Próximo" p-type="primary"></po-button>
+        </div>
+  
+      </div>
+  
+    </div>
+  </po-page-default>

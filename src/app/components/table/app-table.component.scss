@@ -1,0 +1,309 @@
+:host {
+  display: block;
+}
+
+.table-wrapper {
+  position: relative;
+  min-height: 120px;
+  max-height: none;
+  overflow-y: hidden;
+}
+
+.loading-overlay {
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+  display: grid;
+  place-items: center;
+  padding: 16px;
+  background: rgba(255, 255, 255, 0.78);
+  backdrop-filter: blur(1px);
+}
+
+.loading-content {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  padding: 12px 16px;
+  border: 1px solid #d1d5db;
+  border-radius: 999px;
+  background: #ffffff;
+  color: #374151;
+  box-shadow: 0 10px 24px rgba(15, 23, 42, 0.08);
+}
+
+.loading-spinner {
+  width: 16px;
+  height: 16px;
+  border: 2px solid #d1d5db;
+  border-top-color: #4b5563;
+  border-radius: 50%;
+  animation: table-spin 0.8s linear infinite;
+}
+
+.loading-text {
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.empty-overlay {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  padding: 16px;
+  background: #fff;
+}
+
+.empty-overlay .empty-content {
+  max-width: 480px;
+  text-align: center;
+  display: grid;
+  gap: 6px;
+}
+
+.orders-table tr.selected td {
+  background: #eef6ff;
+}
+
+.orders-table th,
+.orders-table td {
+  padding: 5px 10px;
+  line-height: 1.2;
+}
+
+.orders-table tr {
+  height: 36px;
+}
+
+.orders-table .actions-cell {
+  text-align: right;
+  white-space: nowrap;
+}
+
+.orders-table .icon-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 32px;
+  height: 32px;
+  padding: 0 8px;
+  border-radius: 8px;
+  border: 1px solid var(--color-primary);
+  background: transparent;
+  color: var(--color-primary);
+  cursor: pointer;
+  transition: background 0.2s ease, color 0.2s ease, border-color 0.2s ease;
+}
+
+.orders-table .icon-button + .icon-button {
+  margin-left: 6px;
+}
+
+.orders-table .icon-button:hover:not(:disabled) {
+  background: var(--color-primary-soft);
+  color: var(--color-primary);
+  border-color: var(--color-primary);
+}
+
+.orders-table .icon-button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.orders-table .icon-button .po-icon {
+  font-size: 14px;
+}
+
+.status-dot {
+  display: inline-block;
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+}
+
+.status-dot.open {
+  background: #22c55e;
+}
+
+.status-dot.step-created {
+  background: #22c55e;
+}
+
+.status-dot.step-blocked {
+  background: #f59e0b;
+}
+
+.status-dot.step-billing {
+  background: #1f7ae0;
+}
+
+.status-dot.step-transmission {
+  background: #facc15;
+}
+
+.status-dot.step-classification {
+  background: #ec4899;
+}
+
+.status-dot.step-return {
+  background: #8b5cf6;
+}
+
+.status-dot.step-done {
+  background: #ef4444;
+}
+
+.status-dot.delivered {
+  background: #ef4444;
+}
+
+.status-dot.analysis {
+  background: #1f7ae0;
+}
+
+.status-dot.other {
+  background: #f59e0b;
+}
+
+.status-dot.entrega-parcial {
+  background: #fbbf24;
+}
+
+.status-dot.entrega-total {
+  background: #3b82f6;
+}
+
+.status-dot.credito {
+  background: #8b5cf6;
+}
+
+.status-dot.blq-estoque {
+  background: #0ea5e9;
+}
+
+.status-dot.blq-estoque-manual {
+  background: #06b6d4;
+}
+
+.status-dot.blq-regra {
+  background: #f59e0b;
+}
+
+.status-dot.blq-verba {
+  background: #eab308;
+}
+
+.status-dot.encerrado {
+  background: #b91c1c;
+}
+
+.status-dot.sem-status {
+  background: #9ca3af;
+}
+
+.pagination {
+  padding: 8px 20px;
+  min-height: 32px;
+  font-size: 12px;
+}
+
+.pagination .info {
+  font-size: 12px;
+  line-height: 1.2;
+}
+
+.pagination .controls button {
+  font-size: 12px;
+  padding: 4px 10px;
+}
+
+:host ::ng-deep .filters {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  gap: 10px;
+  padding: 8px 16px;
+  border-bottom: 1px solid #e5e7eb;
+  background: #f9fafb;
+}
+
+:host ::ng-deep .filter-field {
+  flex: 1 1 220px;
+  min-width: 180px;
+  display: grid;
+  gap: 4px;
+}
+
+:host ::ng-deep .filter-actions {
+  display: flex;
+  align-items: flex-end;
+  gap: 6px;
+  flex: 0 0 auto;
+  margin-left: auto;
+}
+
+:host ::ng-deep .filter-field label {
+  font-size: 10px;
+  color: #6b7280;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+}
+
+:host ::ng-deep .filter-field input,
+:host ::ng-deep .filter-field select {
+  width: 100%;
+  padding: 8px 10px;
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+  font-size: 12px;
+  background: #fff;
+}
+
+:host ::ng-deep .filters .po-button {
+  min-height: 32px;
+  font-size: 12px;
+}
+
+:host ::ng-deep .filters .minuta-filters {
+  display: contents;
+}
+
+.status-legend {
+  padding: 10px 16px;
+  border-bottom: 1px solid #e5e7eb;
+  background: #fff;
+}
+
+.legend-title {
+  font-size: 10px;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+  color: #6b7280;
+  margin-bottom: 6px;
+}
+
+.legend-items {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px 12px;
+}
+
+.legend-item {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 10px;
+  color: #374151;
+}
+
+.legend-item .status-dot {
+  width: 16px;
+  height: 16px;
+}
+
+@keyframes table-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}

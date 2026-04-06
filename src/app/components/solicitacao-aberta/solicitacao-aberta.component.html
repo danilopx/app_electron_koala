@@ -1,0 +1,41 @@
+<div class="po-row">
+
+  <po-stepper [p-sequential]="true">
+    <po-step p-label="Solicitação Aberta"></po-step>
+    <po-step p-label="Distribuição"></po-step>
+    <po-step p-label="Atendimento Iniciado"></po-step>
+    <po-step p-label="Atendimento Finalizado"></po-step>
+    <po-step p-label="Validação Manutenção"></po-step>
+    <po-step p-label="Validação Usuário"></po-step>
+    <po-step p-label="Solicitação Finalizado"></po-step>
+
+  </po-stepper>
+</div>
+<po-divider></po-divider>
+
+<po-list-view p-property-title="name" [p-items]="solicitacoesAbertas">
+
+  <ng-template p-table-row-template let-solicitacoesAbertas let-i="rowIndex">
+
+    <div class="po-row info">
+      <po-info class="po-md-1" p-label="Item" [p-value]="'wwwwwwwwww'"></po-info>
+      <po-info class="po-md-1" p-label="Item" [p-value]="'wwwwwwwwww'"></po-info>
+     
+      <po-info class="po-md-3 align-info" p-label="Empresa:" [p-value]="solicitacoesAbertas.solicitacao_equipamento">
+      </po-info>
+
+      <po-info class="po-md-3 align-info" p-label="Setor:" [p-value]="">
+      </po-info>
+      <po-info class="po-md-3 align-info" p-label="Equipamento:" [p-value]="">
+      </po-info>
+      <po-info class="po-md-3 align-info" p-label="Prioridade:" [p-value]=""></po-info>
+
+
+
+
+
+    </div>
+
+
+  </ng-template>
+</po-list-view>

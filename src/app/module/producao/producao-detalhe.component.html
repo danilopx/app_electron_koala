@@ -1,0 +1,500 @@
+<div class="producao-page detalhe-page">
+  <po-page-default>
+    <po-container [p-no-border]="true" [p-no-padding]="true" class="po-m-2">
+      <div class="detalhe-header">
+      </div>
+
+      <div class="loading-stage" *ngIf="loadingState">
+        <div class="loading-box">
+          <span class="loading-spinner" aria-hidden="true"></span>
+          <span>Carregando detalhe da OP...</span>
+        </div>
+      </div>
+
+      <ng-container *ngIf="!loadingState && detalhe as vm">
+        <section class="detail-card hero-card">
+          <div class="hero-top">
+            <div>
+              <div class="hero-code-row">
+                <div class="hero-code">OP {{ vm.ordem.op_numero }} / {{ vm.ordem.op_item }}-{{ vm.ordem.op_sequencia }}</div>
+                <span class="status-pill">
+                  <span [class]="getStatusDotClass(vm.ordem.op_status)" aria-hidden="true"></span>
+                  <span>{{ getStatusLabel(vm.ordem.op_status) }}</span>
+                </span>
+              </div>
+              <div class="hero-product">{{ vm.ordem.produto_codigo }} - {{ vm.ordem.produto_descricao }}</div>
+              <div class="hero-client" *ngIf="vm.ordem.op_cliente">{{ vm.ordem.op_cliente }}</div>
+            </div>
+            <div class="hero-actions">
+              <po-button
+                class="simular-button"
+                *ngIf="!isSetorGranel(vm.ordem)"
+                p-icon="po-icon-print"
+                p-label="Simular Etiqueta"
+                p-kind="secondary"
+                (p-click)="simularEtiqueta(vm.ordem)"></po-button>
+              <po-button
+                class="apontar-button"
+                *ngIf="isStatusAberto(vm.ordem.op_status)"
+                p-icon="po-icon-ok"
+                p-label="Apontar Produção"
+                p-kind="primary"
+                (p-click)="abrirApontamento('OP principal', vm.ordem)"></po-button>
+            </div>
+          </div>
+
+          <div class="summary-layout">
+            <div class="summary-grid">
+              <div class="summary-item">
+                <span>Setor Produção</span>
+                <strong>{{ vm.ordem.op_tipo_prod || '-' }}</strong>
+              </div>
+              <div class="summary-item">
+                <span>Tipo Produto</span>
+                <strong>{{ vm.ordem.produto_tipo || '-' }}</strong>
+              </div>
+              <div class="summary-item">
+                <span>UM</span>
+                <strong>{{ vm.ordem.op_um }}</strong>
+              </div>
+              <div class="summary-item">
+                <span>Quant. Multipla</span>
+                <strong>{{ vm.ordem.produto_quant_multipla ?? '-' }}</strong>
+              </div>
+              <div class="summary-item">
+                <span>Quantidade</span>
+                <strong>{{ vm.ordem.op_quantidade }}</strong>
+              </div>
+              <div class="summary-item">
+                <span>Apontado</span>
+                <strong>{{ vm.ordem.op_quant_apontada }}</strong>
+              </div>
+              <div class="summary-item">
+                <span>Saldo</span>
+                <strong>{{ vm.ordem.op_saldo }}</strong>
+              </div>
+              <div class="summary-item">
+                <span>Local</span>
+                <strong>{{ vm.ordem.op_local || '-' }}</strong>
+              </div>
+              <div class="summary-item">
+                <span>Emissão</span>
+                <strong>{{ formatDate(vm.ordem.op_emissao) }}</strong>
+              </div>
+              <div class="summary-item">
+                <span>Prev. Início</span>
+                <strong>{{ formatDate(vm.ordem.op_data_prev_ini) }}</strong>
+              </div>
+              <div class="summary-item">
+                <span>Fim Real</span>
+                <strong>{{ formatDate(vm.ordem.op_data_fim_real) }}</strong>
+              </div>
+              <div class="summary-item summary-item--tail">
+                <span>Observação</span>
+                <strong>{{ vm.ordem.op_observacao || '-' }}</strong>
+              </div>
+            </div>
+
+            <div class="gauge-card">
+              <span class="gauge-label">Avanço da OP principal</span>
+              <div class="gauge-shell" [style.background]="getGaugeBackground(vm.ordem.op_quantidade, vm.ordem.op_quant_apontada)">
+                <div class="gauge-core">
+                  <strong>{{ getProgress(vm.ordem.op_quantidade, vm.ordem.op_quant_apontada) }}%</strong>
+                  <span>concluído</span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="section-header section-header--inside">
+            <h3>Apontamentos da Produção</h3>
+          </div>
+          <div class="apontamento-table-wrap">
+            <table class="apontamento-table">
+              <thead>
+                <tr>
+                  <th>Sequência</th>
+                  <th>Operador</th>
+                  <th>Data/Hora</th>
+                  <th>Unidade de Medida</th>
+                  <th>Quantidade</th>
+                  <th>Armazem</th>
+                  <th>NumSeq</th>
+                  <th>Status</th>
+                  <th>Observação</th>
+                  <th>Ação</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr *ngFor="let apontamento of vm.apontamentos">
+                  <td>{{ apontamento.seq || '-' }}</td>
+                  <td>{{ apontamento.operador }}</td>
+                  <td>{{ formatDateTime(apontamento.data_hora) }}</td>
+                  <td>{{ apontamento.um || '-' }}</td>
+                  <td>{{ apontamento.quantidade }}</td>
+                  <td>{{ apontamento.armazem || '-' }}</td>
+                  <td>{{ apontamento.numseq || '-' }}</td>
+                  <td>
+                    <span [class]="getApontamentoStatusClass(apontamento.status)">
+                      {{ getStatusLabel(apontamento.status) }}
+                    </span>
+                  </td>
+                  <td>{{ apontamento.observacao }}</td>
+                  <td>
+                    <button
+                      type="button"
+                      class="table-action-button"
+                      (click)="abrirModalReimpressao(apontamento, 'OP principal', vm.ordem)">
+                      <span class="table-action-icon po-icon po-icon-print" aria-hidden="true"></span>
+                      Reimpressão
+                    </button>
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+
+          <ng-container *ngIf="vm.reimpressoes?.length">
+            <div class="section-header section-header--inside">
+              <h3>Etiquetas Reimpressas</h3>
+            </div>
+            <div class="apontamento-table-wrap">
+              <table class="apontamento-table">
+                <thead>
+                  <tr>
+                    <th>Sequência</th>
+                    <th>Operador</th>
+                    <th>Data/Hora</th>
+                    <th>Unidade de Medida</th>
+                    <th>Quantidade</th>
+                    <th>Armazem</th>
+                    <th>NumSeq</th>
+                    <th>Aprovador</th>
+                    <th>Motivo</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr *ngFor="let apontamento of vm.reimpressoes">
+                    <td>{{ apontamento.seq || '-' }}</td>
+                    <td>{{ apontamento.operador }}</td>
+                    <td>{{ formatDateTime(apontamento.data_hora) }}</td>
+                    <td>{{ apontamento.um || '-' }}</td>
+                    <td>{{ apontamento.quantidade }}</td>
+                    <td>{{ apontamento.armazem || '-' }}</td>
+                    <td>{{ apontamento.numseq || '-' }}</td>
+                    <td>{{ apontamento.aprovador || '-' }}</td>
+                    <td>{{ apontamento.motivo || '-' }}</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </ng-container>
+        </section>
+
+        <section class="detail-card" *ngIf="vm.intermediarias?.length">
+          <div class="section-header">
+            <h3>OPs Intermediárias e Apontamentos</h3>
+          </div>
+          <div class="intermediarias-list">
+            <article class="intermediaria-block" *ngFor="let intermediaria of vm.intermediarias; trackBy: trackIntermediaria">
+              <div class="intermediaria-header">
+                <div>
+                  <div class="hero-code-row">
+                    <div class="intermediaria-code">
+                      OP {{ intermediaria.ordem.op_numero }} / {{ intermediaria.ordem.op_sequencia }}
+                    </div>
+                    <span class="status-pill status-pill--small">
+                      <span [class]="getStatusDotClass(intermediaria.ordem.op_status)" aria-hidden="true"></span>
+                      <span>{{ getStatusLabel(intermediaria.ordem.op_status) }}</span>
+                    </span>
+                  </div>
+                  <div class="intermediaria-product">
+                    {{ intermediaria.ordem.produto_codigo }} - {{ intermediaria.ordem.produto_descricao }}
+                  </div>
+                </div>
+                <po-button
+                  class="apontar-button"
+                  *ngIf="isStatusAberto(intermediaria.ordem.op_status)"
+                  p-icon="po-icon-ok"
+                  p-label="Apontar Produção"
+                  p-kind="primary"
+                  (p-click)="abrirApontamento('OP intermediária', intermediaria.ordem)"></po-button>
+              </div>
+
+              <div class="summary-layout summary-layout--small">
+                <div class="summary-grid summary-grid--small">
+                  <div class="summary-item">
+                    <span>Tipo Produto</span>
+                    <strong>{{ intermediaria.ordem.produto_tipo || '-' }}</strong>
+                  </div>
+                  <div class="summary-item">
+                    <span>Quantidade</span>
+                    <strong>{{ intermediaria.ordem.op_quantidade }}</strong>
+                  </div>
+                  <div class="summary-item">
+                    <span>Apontado</span>
+                    <strong>{{ intermediaria.ordem.op_quant_apontada }}</strong>
+                  </div>
+                  <div class="summary-item">
+                    <span>Saldo</span>
+                    <strong>{{ intermediaria.ordem.op_saldo }}</strong>
+                  </div>
+                  <div class="summary-item">
+                    <span>Início</span>
+                    <strong>{{ formatDate(intermediaria.ordem.op_data_prev_ini) }}</strong>
+                  </div>
+                  <div class="summary-item">
+                    <span>Fim</span>
+                    <strong>{{ formatDate(intermediaria.ordem.op_data_prev_fim) }}</strong>
+                  </div>
+                </div>
+
+                <div class="gauge-card gauge-card--small">
+                  <div class="gauge-shell gauge-shell--small" [style.background]="getGaugeBackground(intermediaria.ordem.op_quantidade, intermediaria.ordem.op_quant_apontada)">
+                    <div class="gauge-core gauge-core--small">
+                      <strong>{{ getProgress(intermediaria.ordem.op_quantidade, intermediaria.ordem.op_quant_apontada) }}%</strong>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <div class="section-header section-header--inside">
+                <h3>Apontamentos da Intermediária</h3>
+              </div>
+              <div class="apontamento-table-wrap apontamento-table-wrap--nested">
+                <table class="apontamento-table">
+                  <thead>
+                    <tr>
+                      <th>Sequência</th>
+                      <th>Operador</th>
+                      <th>Data/Hora</th>
+                      <th>Unidade de Medida</th>
+                      <th>Quantidade</th>
+                      <th>Armazem</th>
+                      <th>NumSeq</th>
+                      <th>Status</th>
+                      <th>Observação</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr *ngFor="let apontamento of intermediaria.apontamentos">
+                      <td>{{ apontamento.seq || '-' }}</td>
+                      <td>{{ apontamento.operador }}</td>
+                      <td>{{ formatDateTime(apontamento.data_hora) }}</td>
+                      <td>{{ apontamento.um || '-' }}</td>
+                      <td>{{ apontamento.quantidade }}</td>
+                      <td>{{ apontamento.armazem || '-' }}</td>
+                      <td>{{ apontamento.numseq || '-' }}</td>
+                      <td>
+                        <span [class]="getApontamentoStatusClass(apontamento.status)">
+                          {{ getStatusLabel(apontamento.status) }}
+                        </span>
+                      </td>
+                      <td>{{ apontamento.observacao }}</td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+
+              <ng-container *ngIf="intermediaria.reimpressoes?.length">
+                <div class="section-header section-header--inside">
+                  <h3>Etiquetas Reimpressas da Intermediária</h3>
+                </div>
+                <div class="apontamento-table-wrap apontamento-table-wrap--nested">
+                  <table class="apontamento-table">
+                    <thead>
+                      <tr>
+                        <th>Sequência</th>
+                        <th>Operador</th>
+                        <th>Data/Hora</th>
+                        <th>Unidade de Medida</th>
+                        <th>Quantidade</th>
+                        <th>Armazem</th>
+                        <th>NumSeq</th>
+                        <th>Aprovador</th>
+                        <th>Motivo</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      <tr *ngFor="let apontamento of intermediaria.reimpressoes">
+                        <td>{{ apontamento.seq || '-' }}</td>
+                        <td>{{ apontamento.operador }}</td>
+                        <td>{{ formatDateTime(apontamento.data_hora) }}</td>
+                        <td>{{ apontamento.um || '-' }}</td>
+                        <td>{{ apontamento.quantidade }}</td>
+                        <td>{{ apontamento.armazem || '-' }}</td>
+                        <td>{{ apontamento.numseq || '-' }}</td>
+                        <td>{{ apontamento.aprovador || '-' }}</td>
+                        <td>{{ apontamento.motivo || '-' }}</td>
+                      </tr>
+                    </tbody>
+                  </table>
+                </div>
+              </ng-container>
+            </article>
+          </div>
+        </section>
+      </ng-container>
+
+      <po-modal
+        #apontamentoModal
+        class="system-modal"
+        p-title="Apontar Produção"
+        p-click-out="true"
+        p-size="md">
+        <div class="apontamento-modal-body" *ngIf="ordemSelecionadaApontamento as ordem">
+          <div class="apontamento-modal-header">
+            <div>
+              <div class="apontamento-op-row">
+                <strong>OP {{ ordem.op_numero }} / {{ ordem.op_item }}-{{ ordem.op_sequencia }}</strong>
+                <span [class]="getContextoApontamentoClass()">{{ contextoApontamento }}</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="apontamento-modal-grid">
+            <div class="apontamento-modal-item">
+              <span>Produto</span>
+              <strong>{{ ordem.produto_codigo }} - {{ ordem.produto_descricao }}</strong>
+            </div>
+            <div class="apontamento-modal-item">
+              <span>Saldo</span>
+              <strong>{{ ordem.op_saldo }}</strong>
+            </div>
+            <div class="apontamento-modal-item">
+              <span>Apontado</span>
+              <strong>{{ ordem.op_quant_apontada }}</strong>
+            </div>
+            <div class="apontamento-modal-item">
+              <span>Status</span>
+              <strong>{{ getStatusLabel(ordem.op_status) }}</strong>
+            </div>
+          </div>
+
+          <div class="quantidade-box">
+            <label class="reprint-modal-label" for="quantidadeApontamento">Quantidade</label>
+            <div class="quantidade-input-group">
+              <input
+                id="quantidadeApontamento"
+                type="text"
+                min="0"
+                step="0.01"
+                [(ngModel)]="quantidadeApontamento"
+                [readonly]="isQuantidadeTravada(ordem)"
+                inputmode="decimal"
+                (input)="onDecimalInput('quantidade', $event)"
+                placeholder="Digite a quantidade" />
+              <span class="um-highlight">{{ getQuantidadeDisplayUm(ordem) }}</span>
+            </div>
+          </div>
+
+          <div class="quantidade-box" *ngIf="isSerrariaComConversao(ordem)">
+            <label class="reprint-modal-label">Quantidade Convertida</label>
+            <div class="quantidade-input-group quantidade-input-group--readonly">
+              <input type="text" [value]="getQuantidadeConvertidaM3(ordem)" readonly />
+              <span class="um-highlight">M3</span>
+            </div>
+          </div>
+
+          <div class="quantidade-box">
+            <label class="reprint-modal-label" for="perdaApontamento">Perda</label>
+            <div class="quantidade-input-group">
+              <input
+                id="perdaApontamento"
+                type="text"
+                min="0"
+                step="0.01"
+                [(ngModel)]="perdaApontamento"
+                inputmode="decimal"
+                (input)="onDecimalInput('perda', $event)"
+                placeholder="Digite a perda" />
+              <span class="um-highlight">{{ ordem.op_um }}</span>
+            </div>
+          </div>
+
+          <div class="quantidade-box">
+            <label class="reprint-modal-label" for="observacaoApontamento">Observação</label>
+            <textarea
+              id="observacaoApontamento"
+              [(ngModel)]="observacaoApontamento"
+              rows="3"
+              placeholder="Digite a observação do apontamento"></textarea>
+          </div>
+        </div>
+        <po-modal-footer>
+          <po-button p-label="Cancelar" p-kind="secondary" (p-click)="apontamentoModal.close()"></po-button>
+          <po-button
+            p-label="Confirmar"
+            p-kind="primary"
+            [p-disabled]="salvandoApontamento"
+            (p-click)="confirmarApontamento()"></po-button>
+        </po-modal-footer>
+      </po-modal>
+
+      <po-modal
+        #reprintModal
+        class="system-modal"
+        p-title="Motivo da reimpressão"
+        p-click-out="true"
+        p-size="md">
+        <div class="reprint-modal-body">
+          <p class="reprint-modal-text">
+            Informe o motivo da reimpressão da etiqueta
+            <strong class="reprint-user-highlight">{{ getUsuarioReimpressao() }}</strong>.
+            Se for em horário comercial, necessário liberação pelo login do supervisor ou PCP.
+            Fora do horário comercial, pelo login do líder.
+          </p>
+          <label class="reprint-modal-label" for="motivoReimpressao">Motivo</label>
+          <textarea
+            id="motivoReimpressao"
+            [(ngModel)]="motivoReimpressao"
+            rows="4"
+            maxlength="254"
+            placeholder="Descreva o motivo da reimpressão"></textarea>
+
+          <label class="reprint-modal-label" for="loginAprovacao">Login de aprovação</label>
+          <input
+            id="loginAprovacao"
+            type="text"
+            [(ngModel)]="loginAprovacao"
+            placeholder="Informe o login do usuário superior" />
+
+          <label class="reprint-modal-label" for="senhaAprovacao">Senha de aprovação</label>
+          <input
+            id="senhaAprovacao"
+            type="password"
+            [(ngModel)]="senhaAprovacao"
+            placeholder="Informe a senha do usuário superior" />
+        </div>
+        <po-modal-footer>
+          <po-button p-label="Cancelar" p-kind="secondary" (p-click)="reprintModal.close()"></po-button>
+          <po-button
+            p-label="Confirmar"
+            p-kind="primary"
+            [p-disabled]="salvandoReimpressao"
+            (p-click)="confirmarReimpressao()"></po-button>
+        </po-modal-footer>
+      </po-modal>
+
+      <po-modal
+        #logModal
+        p-click-out="true"
+        p-size="md"
+        class="system-modal"
+        p-title="Detalhes do Log">
+        <div class="modal-body">
+          <div class="log-content" [innerHTML]="mensagemLog"></div>
+        </div>
+
+        <po-modal-footer>
+          <po-button
+            p-label="Enviar Log Por Email"
+            p-kind="primary"
+            [p-loading]="loagingButton"
+            (p-click)="enviarLog(mensagemLog)"></po-button>
+          <po-button p-label="Fechar" p-kind="primary" (p-click)="logModal.close()"></po-button>
+        </po-modal-footer>
+      </po-modal>
+    </po-container>
+  </po-page-default>
+</div>

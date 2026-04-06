@@ -1,0 +1,82 @@
+.header-actions {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  margin-left: auto;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.widget-header {
+  align-items: center;
+  margin-bottom: 4px;
+}
+
+.pedido-title {
+  font-size: 14px;
+  font-weight: 700;
+  color: #111827;
+}
+
+.pedido-subtitle {
+  font-size: 12px;
+  color: #6b7280;
+}
+
+.info {
+  margin: 0;
+}
+
+.align-info {
+  padding-right: 12px;
+}
+
+
+:host ::ng-deep .stepper-readonly,
+:host ::ng-deep .stepper-readonly * {
+  pointer-events: none !important;
+}
+
+.stepper-lock {
+  position: relative;
+  display: block;
+}
+
+.stepper-lock-overlay {
+  position: absolute;
+  inset: 0;
+  z-index: 3;
+  pointer-events: auto;
+  background: transparent;
+}
+
+:host ::ng-deep .stepper-lock .po-stepper {
+  position: relative;
+  z-index: 1;
+}
+
+:host ::ng-deep .stepper-lock .po-stepper-step,
+:host ::ng-deep .stepper-lock .po-stepper-step * {
+  pointer-events: none !important;
+}
+
+:host ::ng-deep .stepper-readonly .po-stepper-circle-active {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: transparent;
+  border: none;
+}
+
+:host ::ng-deep .stepper-readonly .po-stepper-circle-active::after {
+  content: "\2713";
+  font-size: 12px;
+  font-weight: 700;
+  color: #2563eb;
+}
+
+:host ::ng-deep .stepper-readonly .po-stepper-circle {
+  position: relative;
+}

@@ -1,0 +1,221 @@
+<div class="producao-page">
+  <po-page-default>
+    <po-loading-overlay *ngIf="!solicitacoesCarregadas || gerandoOs" [p-text]="'Aguarde'"></po-loading-overlay>
+    <po-container *ngIf="solicitacoesCarregadas" [p-no-border]="true" [p-no-padding]="true" class="po-m-2">
+
+    <app-status-cards
+      [title]="'Solicitações'"
+      [cards]="statusCards"
+      [loading]="!solicitacoesCarregadas"
+      [updatedAt]="statusUpdatedAt"
+      (list)="filtrarPorStatusCard($event)"
+    ></app-status-cards>
+
+   <!-- <div class="po-text-center">
+      <div class="po-font-title"><span class=""></span> Lista de Solicitações</div>
+    </div>
+
+    <hr>-->
+
+    <!-- Só renderizo a tabela se as colunas forem definidas. -->
+    <!-- Precisa usar a propriedade com as columns senão dá erro. -->
+    <!-- Importante: Ao expandir os detalhes da row, preciso saber qual S.S. estou vendo no momento. -->
+    <div class="po-row ">
+      <div class=" po-sm-12">
+
+        <div class="table-card">
+  <app-table appCustomRow [p-hide-columns-manager]="true" [p-items]="solicitacoes" [p-infinite-scroll]="true"
+          [p-columns]="solicitacoesColunas" [p-auto-collapse]="true" p-container="true"
+          [p-striped]="true" [p-sort]="true" [p-hide-table-search]="false" (p-expanded)="aoExpandirSolicitacao($event)"
+          (p-collapsed)="aoColapsarSolicitacao()">
+          <div app-table-filters class="minuta-filters">
+            <div class="filter-field">
+              <label for="distribuicaoDataDe">Data de</label>
+              <input id="distribuicaoDataDe" type="date" [(ngModel)]="filtroDataDe" />
+            </div>
+            <div class="filter-field">
+              <label for="distribuicaoDataAte">Data até</label>
+              <input id="distribuicaoDataAte" type="date" [(ngModel)]="filtroDataAte" />
+            </div>
+            <div class="filter-field">
+              <label for="distribuicaoStatus">Status</label>
+              <select id="distribuicaoStatus" [(ngModel)]="filtroStatusSelecionado">
+                <option value="">Todos</option>
+                <option *ngFor="let status of listaDeStatus" [value]="status.value">{{ status.label }}</option>
+              </select>
+            </div>
+            <div class="filter-actions">
+              <po-button class="secondary" p-label="Filtrar" p-kind="primary" (p-click)="aplicarFiltrosTabela()">
+              </po-button>
+              <po-button class="secondary ml" p-label="Limpar" p-kind="secondary" (p-click)="limparFiltrosTabela()">
+              </po-button>
+            </div>
+          </div>
+          <!-- Coluna de Prioridade Customizada com a diretiva `po-table-column-template` -->
+          <!-- Muda a Cor da Celula e o Ícone de acordo com o valor da propriedade. -->
+          <ng-template p-table-column-template let-prioridade [p-property]="'solicitacao_prioridade'">
+
+            <div class="simplify-badge-prioridade {{ prioridade }}">
+              <span *ngIf="prioridade === 'alta'" class=""></span>
+              <span *ngIf="prioridade === 'baixa'" class=""></span>
+              {{ prioridade | uppercase }}
+            </div>
+
+          </ng-template>
+
+          <!-- Ng Template p/ Expandir a Linha com o Table Row Template.-->
+          <!-- Essa Diretiva serve só pra isso. Serve pra inserir o botão que expande os detalhes da linha atual. -->
+          <!-- Vincula o Botão com o ID da Row atual (Usando o `Let I`) -->
+          <ng-template p-table-row-template let-rowSolicitacao let-i="rowIndex">
+
+
+
+            <po-widget class="solicitacao-details">
+
+              <div class="po-row details-header">
+                <div class="po-md-8 po-sm-12">
+                  <div class="details-title">Informações da Solicitação de Serviço: {{ rowSolicitacao.solicitacao_id }}</div>
+                </div>
+                <div class="po-md-4 po-sm-12 details-actions">
+                  <po-button
+                    *ngIf="rowSolicitacao.solicitacao_step === '4'"
+                    class="po-mb-2 po-pull-right po-m-1"
+                    p-icon="po-icon po-icon-document"
+                    p-label="Avaliação Manutenção"
+                    (p-click)="eventAprovacao(rowSolicitacao)">
+                  </po-button>
+                  <po-button
+                    *ngIf="rowSolicitacao.solicitacao_step === '1'"
+                    class="po-mb-2 po-pull-right po-m-1"
+                    p-icon="po-icon po-icon-document"
+                    p-label="Distribuir"
+                    (p-click)="distribuicao(rowSolicitacao)">
+                  </po-button>
+                </div>
+              </div>
+
+                  <div class="po-row details-stepper">
+                    <div class="stepper-lock">
+                      <po-stepper class="stepper-readonly" [p-sequential]="true" [p-step-icons]="true">
+                        <po-step p-label="Solicitação Aberta"></po-step>
+                        <po-step p-label="Enviado ao Manutentor"></po-step>
+                        <po-step p-label="Início do Atendimento"></po-step>
+                        <po-step p-label="Finalização do Atendimento"></po-step>
+                        <po-step p-label="Validação Manutenção"></po-step>
+                        <po-step p-label="Validação Setor"></po-step>
+                        <po-step p-label="Ordem de Serviço Finalizado"></po-step>
+                      </po-stepper>
+                      <div class="stepper-lock-overlay" (click)="$event.preventDefault(); $event.stopPropagation()"></div>
+                    </div>
+                </div>
+                <div class="po-row details-grid">
+
+                  <po-info class="po-md-4 align-info" p-label="Empresa:" [p-value]=" rowSolicitacao.solicitacao_filial">
+                  </po-info>
+
+                  <po-info class="po-md-4 align-info" p-label="Setor:"
+                    [p-value]="rowSolicitacao.ordem_codsetor +'-'+rowSolicitacao.setor_nome">
+                  </po-info>
+                  <po-info class="po-md-4 align-info" p-label="Equipamento:"
+                    [p-value]="rowSolicitacao.equipamento_id+'-'+rowSolicitacao.equipamento_nome">
+                  </po-info>
+                 <!-- <po-info class="po-md-3 align-info" p-label="Prioridade:"
+                    [p-value]="rowSolicitacao.solicitacao_prioridade.toUpperCase()"></po-info> -->
+                  <po-info class="po-md-4 align-info" p-label="Solicitante:" [p-value]="rowSolicitacao.solicitacao_usuario.toUpperCase()"></po-info>
+                  <po-info class="po-md-4 align-info" p-label="Executor:"
+                    [p-value]="rowSolicitacao.executor_matricula+'-'+rowSolicitacao.executor_nome.toUpperCase()"></po-info>
+                  <po-info class="po-md-4 align-info" p-label="Tipo"
+                    [p-value]="rowSolicitacao.ordem_cod_servico"></po-info>
+
+                  <po-info class="po-md-4 align-info" p-label="Data Abertura:"   *ngIf="rowSolicitacao.solicitacao_databer.trim() !== ''; else noData"
+                    [p-value]="formatarDataBrasileira(rowSolicitacao.solicitacao_databer) + ' ' + rowSolicitacao.solicitacao_horaber">
+                    > </po-info>
+                    <ng-template #noData>
+                    <po-info class="po-md-4 align-info" p-label="Data Abertura:"  
+                    [p-value]="formatarDataBrasileira( rowSolicitacao.ordem_data) + ' ' + rowSolicitacao.solicitacao_horaber">
+                    > </po-info>
+                  </ng-template>
+
+                  <po-info class="po-md-4 align-info" p-label="Data Inicio da Manutenção:"
+                    [p-value]="formatarDataBrasileira(rowSolicitacao.ordem_data_real_inicio_manutencao)+' '+rowSolicitacao.ordem_hora_real_inicio_manutencao"></po-info>
+
+                  <po-info class="po-md-4 align-info" p-label="Data Final da Manutenção:"
+                    [p-value]="formatarDataBrasileira(rowSolicitacao.ordem_data_real_fim_manutencao)+' '+rowSolicitacao.ordem_hora_real_fim_manutencao"></po-info>
+
+                   
+                  <po-info class="po-md-4 align-info info-text-wrap" p-label="Descrição do Problema:"
+                    [p-value]="rowSolicitacao.solicitacao_descricao"></po-info>
+
+                    <po-info class="po-md-4 align-info info-text-wrap" p-label="Descrição da Causa:"
+                    [p-value]="rowSolicitacao.ordem_causa"></po-info>
+
+                    <po-info class="po-md-4 align-info info-text-wrap" p-label="Descrição da Solução:"
+                    [p-value]="rowSolicitacao.ordem_solucao"></po-info>
+
+
+
+                    <po-info class="po-md-4 align-info" p-label="Aprovação Manuenção:"
+                    [p-value]="rowSolicitacao.ordem_avaliacao === '' ? '' : rowSolicitacao.ordem_avaliacao === 'A'?'Aprovado':'Reprovado'"></po-info>
+        
+
+                    <po-info class="po-md-4 align-info" p-label="Qualidade e resolução do problema?"
+                    [p-value]="getStatusLabel(rowSolicitacao.solicitacao_qualidade)"></po-info>
+
+                    <po-info class="po-md-4 align-info" p-label="Satisfação e prazo de atendimento?"
+                    [p-value]="getStatusLabel(rowSolicitacao.solicitacao_satisfacao)"></po-info>
+
+
+                </div>
+            </po-widget>
+
+          </ng-template>
+
+        </app-table>
+</div>
+      </div>
+    </div>
+
+
+
+
+      <!-- Fim do Po Table. -->
+    </po-container>
+  </po-page-default>
+</div>
+
+<po-modal #poModal class="system-modal" p-title="Distribuir Solicitação" p-click-out="true" p-size="xl">
+
+  <po-dynamic-form class="po-md-12" #formDistribuicao [p-fields]="fieldsFormDistribuicao">
+
+  </po-dynamic-form>
+
+  <po-button class="po-md-12 po-mt-2" p-label="Distribuir" p-icon="fa fa-share-square-o"
+    [p-disabled]="!formDistribuicao.form.valid || buttonDisabled"
+    (p-click)="distribuirSs(solicitacaoAlter, formDistribuicao)">
+  </po-button>
+
+  <po-loading-overlay *ngIf="distribuido" [p-screen-lock]="true"></po-loading-overlay>
+
+
+</po-modal>
+
+<!-- Modal de Detalhes -->
+<po-modal #modalAprovacao
+  class="system-modal"
+  p-title="Aprovação da Solicitação"
+  p-click-out="true"
+  p-size="xl"
+  [p-primary-action]="{ action: salvarAprocacao.bind(this,solicitacaoAlter), label: 'Salvar' }"
+  [p-secondary-action]="{ action: cancelarAprovacao.bind(this), label: 'Cancelar' }">
+  <div class="po-row">
+    <po-combo class="po-md-12" p-label="Problema" [ngModel]="aprovacao"
+    (ngModelChange)="aprovacao = $event"
+       [p-options]="aprovacaoOptions" [p-required]="true"
+       p-help="* Obrigatório, selecione uma opção.">
+    </po-combo>
+  </div>
+
+
+  <po-loading-overlay *ngIf="loadingStart" [p-screen-lock]="true"></po-loading-overlay>
+</po-modal>
+

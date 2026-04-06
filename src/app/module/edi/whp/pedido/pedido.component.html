@@ -1,0 +1,119 @@
+<po-page-default>
+
+
+
+    <div class="po-row ">
+      <div class=" po-sm-8"></div>
+
+      <po-button class=" po-sm-2" p-icon="po-icon po-icon-close" (p-click)="voltar()" p-label="Sair"> </po-button>
+      <po-button *ngIf="action == 'insert' || action == 'update'" class=" po-sm-2" p-icon="po-icon po-icon-ok"  (p-click)="salvar()" [p-loading]="buttonPRG" p-label="Salvar"> </po-button>
+      <po-button *ngIf="action == 'faturar'" class=" po-sm-2"  [p-disabled]="salvarDBT" p-icon="po-icon po-icon-ok"  (p-click)="salvar()" [p-loading]="buttonPRG" p-label="Gerar Nota Fiscal"> </po-button>
+      <po-button *ngIf="action == 'classificar'" class=" po-sm-2"  [p-disabled]="salvarDBT" p-icon="po-icon po-icon-ok"  (p-click)="salvar()" [p-loading]="buttonPRG" p-label="Classificar Nota Fiscal"> </po-button>
+    </div>
+    <po-divider></po-divider>
+
+
+    <po-dynamic-form  (p-form)="getFormPedido($event)" [p-load]="onLoadFields.bind(this)" [p-fields]="fields" [p-validate]="this.onChangeFields.bind(this)" [p-value]="formValue">
+    </po-dynamic-form>
+    <po-divider></po-divider>
+
+
+    <div class="po-row  po-mb-1 " *ngIf="buttonPR == false">
+      <po-button class="po-offset-lg-10 po-sm-2" [p-disabled]="buttonPR" (p-click)="openModalProduto()"
+        p-icon="po-icon po-icon-plus" p-label="Incluir Produto">
+      </po-button>
+    </div>
+
+    <po-list-view p-property-title="name" [p-actions]="actions" [p-items]="items_ped_view">
+      
+           
+      <ng-template p-list-view-content-template let-item>
+        <div class="po-row">
+
+        <po-info class="po-md-12 po-lg-1" p-label="Item" [p-value]="item.nitem"></po-info>
+ <!-- 
+          <po-info class="po-md-12 po-lg-1" p-label="Código" [p-value]="item.codigo"></po-info> -->
+        
+          <po-info class="po-md-12 po-lg-3" p-label="Produto" [p-value]="item.desc"></po-info>
+       
+          <po-info class="po-md-12 po-lg-1" p-label="UM"         [p-value]="item.um"></po-info>
+       
+          <po-info class="po-md-12 po-lg-1" p-label="Quantidade" [p-value]="item.quant"></po-info>
+        
+          <po-info class="po-md-12 po-lg-1" p-label="Preço Unit." [p-value]="item.prunit"></po-info>
+       
+          <po-info class="po-md-12 po-lg-1" p-label="Total" [p-value]="item.ptotal"></po-info>
+       
+          <po-info class="po-md-12 po-lg-1" p-label="Tab. Preço" [p-value]="item.tab"></po-info>
+
+
+          <po-info *ngIf="this.action != 'classificar'" class="po-md-12 po-lg-1" p-label="TES" [p-value]="item.tes"></po-info>
+        
+          <po-info class="po-md-12 po-lg-2" p-label="N.Fiscal" [p-value]="item.notaorig+'/'+item.serirorig"></po-info>
+        </div>
+      </ng-template>
+    </po-list-view>
+
+
+</po-page-default>
+
+
+
+
+
+<po-modal
+  #poModal
+  class="system-modal"
+  [p-title]="modalAction == 'select' ? 'Selecionar Produto' : (modalAction == 'form' ? 'Adicionar Item' : 'Remover Item')"
+  p-click-out="true"
+  p-size="xl"
+>
+
+  <div *ngIf="this.modalAction == 'select'">
+
+    <div class="table-card">
+  <app-table p-hide-table-search="false" [p-infinite-scroll]="true" [p-selectable]="true"
+      [p-infinite-scroll-distance]="80" [p-height]="300" [p-items]="items" [p-hide-columns-manager]="true"
+      [p-sort]="true" [p-columns]="columnsProduto" [p-loading]="loadingModal" [p-selectable-entire-line]="true"
+      [p-single-select]="true" p-hide-batch-actions="true">
+    </app-table>
+</div>
+
+    <po-modal-footer>
+      <po-button p-label="Selecionar" p-kind="primary" (p-click)="SelectToPedido('')"> </po-button>
+    </po-modal-footer>
+  </div>
+  
+  <div *ngIf="this.modalAction == 'form'">
+
+    <po-dynamic-form [p-value]="formValueItems"  [p-load]="onLoadFieldsPR.bind(this)" (p-form)="getFormItens($event)" [p-fields]="fields_prod" p-auto-focus="quant"
+      [p-validate-fields]="validateFields" [p-value]="camposPredefinidosProduto"
+      [p-validate]="this.onChangeFieldsPR.bind(this)">
+    </po-dynamic-form>
+
+
+    <po-modal-footer>
+      <po-button p-label="Salvar" p-kind="primary" [p-disabled]="buttonPRS" (p-click)="addToPedido(typoAction)"> </po-button>
+    </po-modal-footer>
+
+
+
+  </div>
+
+  <div *ngIf="this.modalAction == 'formRemove'">
+
+    <po-dynamic-form [p-value]="formValueItems" [p-load]="onLoadFieldsPR.bind(this)" (p-form)="getFormItens($event)" [p-fields]="fields_prod" p-auto-focus="quant"
+      [p-validate-fields]="validateFields" [p-value]="camposPredefinidosProduto"
+      [p-validate]="this.onChangeFieldsPR.bind(this)">
+    </po-dynamic-form>
+
+
+    <po-modal-footer>
+      <po-button p-label="SIM" p-kind="primary"  (p-click)="removeToPedido()"> </po-button>
+      <po-button p-label="NÃO" p-kind="primary"  (p-click)="this.poModal.close()"> </po-button>
+    </po-modal-footer>
+
+  </div>
+
+</po-modal>
+

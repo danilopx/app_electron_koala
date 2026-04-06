@@ -1,0 +1,62 @@
+<div class="producao-page">
+  <po-page-default>
+    <po-container [p-no-border]="true" [p-no-padding]="false" class="po-m-2">
+      <div class="table-card">
+        <app-table
+          [p-items]="minutaFiltrada"
+          [p-hide-columns-manager]="true"
+          p-container="true"
+          [p-selectable]="false"
+          [p-sort]="true"
+          [p-striped]="true"
+          [p-literals]="customLiterals"
+          [p-columns]="columns"
+          [p-max-columns]="9"
+          (p-show-more)="listMinuta(true)"
+        >
+          <div app-table-filters class="minuta-filters">
+            <div class="filter-field">
+              <label for="minutaStart">Data inicial</label>
+              <input id="minutaStart" type="date" [(ngModel)]="filtroDataInicio" />
+            </div>
+            <div class="filter-field">
+              <label for="minutaEnd">Data final</label>
+              <input id="minutaEnd" type="date" [(ngModel)]="filtroDataFim" />
+            </div>
+            <div class="filter-actions">
+              <po-button
+                class="secondary"
+                p-label="Filtrar"
+                p-kind="primary"
+                (p-click)="applyFilters()">
+              </po-button>
+              <po-button
+                class="secondary ml"
+                p-label="Limpar"
+                p-kind="secondary"
+                (p-click)="clearFilters()">
+              </po-button>
+            </div>
+          </div>
+        </app-table>
+      </div>
+    </po-container>
+
+    <po-loading-overlay *ngIf="loadingState" [p-text]="'Aguarde'" [p-screen-lock]="false"></po-loading-overlay>
+  </po-page-default>
+</div>
+
+
+
+
+<po-modal
+  #pdfModal
+  class="system-modal"
+  p-title="Visualizar PDF"
+  p-click-out="true"
+  [p-primary-action]="{ label: 'Fechar', action: pdfModal.close.bind(pdfModal) }"
+  [p-size]="'lg'"
+>
+  <iframe *ngIf="pdfSrc" [src]="pdfSrc" width="100%" height="700px"></iframe>
+</po-modal>
+

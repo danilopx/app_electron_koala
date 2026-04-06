@@ -1,0 +1,165 @@
+.status-cards {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 16px;
+  margin-bottom: 16px;
+}
+
+.status-card {
+  background: #fff;
+  border: 1px solid #e5e7eb;
+  border-radius: 12px;
+  padding: 10px 12px;
+  display: grid;
+  gap: 8px;
+  box-shadow: 0 8px 20px rgba(15, 23, 42, 0.08);
+}
+
+.card-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.card-title {
+  font-size: 10px;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: #6b7280;
+}
+
+.card-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 10px;
+  font-weight: 600;
+  padding: 3px 8px;
+  border-radius: 999px;
+  border: 1px solid transparent;
+  white-space: nowrap;
+}
+
+.card-dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 999px;
+  background: var(--status-color, currentColor);
+  flex: 0 0 7px;
+}
+
+.card-body {
+  display: grid;
+  gap: 2px;
+}
+
+.card-count {
+  font-size: 18px;
+  font-weight: 700;
+  color: #111827;
+}
+
+.card-meta {
+  font-size: 10px;
+  color: #6b7280;
+}
+
+.card-actions {
+  display: flex;
+  justify-content: flex-end;
+}
+
+.card-button {
+  border: 1px solid #2563eb;
+  color: #2563eb;
+  background: #fff;
+  padding: 4px 10px;
+  border-radius: 6px;
+  font-size: 11px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.card-button:hover {
+  background: #eff6ff;
+}
+
+.step-orange {
+  --status-color: #f59e0b;
+  color: #b45309;
+  background: #fffbeb;
+  border-color: #fde68a;
+}
+
+.step-blue {
+  --status-color: #1f7ae0;
+  color: #1e40af;
+  background: #eff6ff;
+  border-color: #bfdbfe;
+}
+
+.step-yellow {
+  --status-color: #facc15;
+  color: #a16207;
+  background: #fef9c3;
+  border-color: #fde68a;
+}
+
+.step-green {
+  --status-color: #22c55e;
+  color: #166534;
+  background: #dcfce7;
+  border-color: #86efac;
+}
+
+.step-pink {
+  --status-color: #ec4899;
+  color: #be185d;
+  background: #fce7f3;
+  border-color: #fbcfe8;
+}
+
+.step-gray {
+  --status-color: #4b5563;
+  color: #4b5563;
+  background: #f3f4f6;
+  border-color: #d1d5db;
+}
+
+.step-purple {
+  --status-color: #8b5cf6;
+  color: #6d28d9;
+  background: #f5f3ff;
+  border-color: #ddd6fe;
+}
+
+.step-red {
+  --status-color: #ef4444;
+  color: #b91c1c;
+  background: #fee2e2;
+  border-color: #fecaca;
+}
+
+.status-legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin: -4px 0 14px;
+}
+
+.legend-item {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 11px;
+  color: #4b5563;
+}
+
+.legend-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 999px;
+  background: var(--status-color, #6b7280);
+  border: 1px solid rgba(0, 0, 0, 0.08);
+}

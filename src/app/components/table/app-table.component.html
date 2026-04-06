@@ -1,0 +1,174 @@
+<div class="filters">
+  <div class="filter-field" *ngIf="!hideTableSearch">
+    <label>Busca</label>
+    <input type="text" [(ngModel)]="searchTerm" [placeholder]="searchPlaceholder" (ngModelChange)="setPage(1)" />
+  </div>
+  <ng-content select="[app-table-filters]"></ng-content>
+</div>
+
+<div class="status-legend" *ngIf="statusLegend.length">
+  <div class="legend-title">Legenda de status</div>
+  <div class="legend-items">
+    <div class="legend-item" *ngFor="let status of statusLegend">
+      <span [class]="status.className" aria-hidden="true"></span>
+      <span class="legend-label">{{ status.label }}</span>
+    </div>
+  </div>
+</div>
+
+<div
+  class="table-wrapper"
+  [style.maxHeight.px]="height"
+  [style.overflowY]="height ? 'auto' : null"
+  (scroll)="onScroll($event)"
+  #tableWrapper
+>
+  <div class="loading-overlay" *ngIf="loading">
+    <div class="loading-content">
+      <span class="loading-spinner" aria-hidden="true"></span>
+      <span class="loading-text">{{ literals.loadingData || 'Carregando' }}...</span>
+    </div>
+  </div>
+
+  <table class="orders-table">
+    <thead>
+      <tr>
+        <th *ngIf="showExpandColumn" class="legend-col"></th>
+        <th
+          *ngFor="let column of visibleColumns"
+          [class.sortable]="sortEnabled && column.sortable !== false"
+          (click)="onSort(column)"
+        >
+          {{ column.label || column.property }}
+          <span
+            class="sort-icons"
+            *ngIf="sortEnabled && column.sortable !== false"
+            [class.active]="sortProperty === column.property"
+          >
+            <span class="sort-icon" [class.active]="sortProperty === column.property && sortAscending">▲</span>
+            <span class="sort-icon" [class.active]="sortProperty === column.property && !sortAscending">▼</span>
+          </span>
+        </th>
+        <th *ngIf="hasActions"></th>
+      </tr>
+    </thead>
+    <tbody>
+      <ng-container *ngFor="let row of displayedItems; let rowIndex = index">
+        <tr
+          [class.selected]="isSelected(row)"
+          (click)="onRowClick(row, rowIndex)"
+        >
+          <td *ngIf="showExpandColumn" class="legend-col">
+            <button
+              type="button"
+              class="icon-button"
+              (click)="toggleRow(row, rowIndex, $event)"
+              [attr.aria-label]="'Detalhar linha ' + rowIndex"
+              *ngIf="canExpand(row, rowIndex)"
+            >
+              <span
+                class="po-icon"
+                [class.po-icon-arrow-down]="isExpanded(row)"
+                [class.po-icon-arrow-right]="!isExpanded(row)"
+                aria-hidden="true"
+              ></span>
+            </button>
+          </td>
+
+          <td *ngFor="let column of visibleColumns">
+            <ng-container *ngIf="column.type === 'icon' && getColumnIcons(column).length; else nonIconCell">
+              <button
+                *ngFor="let icon of getColumnIcons(column)"
+                type="button"
+                class="icon-button"
+                (click)="executeColumnIcon(icon, row, $event)"
+              >
+                <span
+                  *ngIf="isIconString(icon.icon)"
+                  class="po-icon"
+                  [class]="icon.icon"
+                  aria-hidden="true"
+                ></span>
+                <span *ngIf="!isIconString(icon.icon)">{{ getIconLabel(icon) }}</span>
+              </button>
+            </ng-container>
+
+            <ng-template #nonIconCell>
+              <ng-container *ngIf="getColumnTemplate(column); else defaultCell">
+                <ng-container
+                  *ngTemplateOutlet="getColumnTemplate(column)!.templateRef; context: { $implicit: getCellValue(row, column), row: row, column: column }"
+                ></ng-container>
+              </ng-container>
+              <ng-template #defaultCell>
+                <ng-container *ngIf="isStatusColumn(column); else defaultValue">
+                  <span
+                    [class]="getStatusClass(getCellValue(row, column))"
+                    [attr.title]="getStatusLabel(column, getCellValue(row, column))"
+                    aria-hidden="true"
+                  ></span>
+                </ng-container>
+                <ng-template #defaultValue>
+                  <ng-container *ngIf="column.type === 'label' && column.labels; else plainValue">
+                    <span [class]="getLabelClass(column, getCellValue(row, column))">
+                      {{ formatValue(getCellValue(row, column), column) }}
+                    </span>
+                  </ng-container>
+                  <ng-template #plainValue>
+                    {{ formatValue(getCellValue(row, column), column) }}
+                  </ng-template>
+                </ng-template>
+              </ng-template>
+            </ng-template>
+          </td>
+
+          <td *ngIf="hasActions" class="actions-cell" (click)="$event.stopPropagation()">
+            <button
+              *ngFor="let action of getRowActions(row)"
+              type="button"
+              class="icon-button"
+              [disabled]="isActionDisabled(action, row)"
+              (click)="executeAction(action, row, $event)"
+            >
+              <span
+                *ngIf="isIconString(action.icon)"
+                class="po-icon"
+                [class]="action.icon"
+                aria-hidden="true"
+              ></span>
+              <span *ngIf="!isIconString(action.icon)">{{ action.label }}</span>
+            </button>
+          </td>
+        </tr>
+
+        <tr *ngIf="isExpanded(row)">
+          <td [attr.colspan]="columnCount">
+            <ng-container *ngIf="rowTemplate?.templateRef as rowTpl">
+              <ng-container
+                *ngTemplateOutlet="rowTpl; context: { $implicit: row, rowIndex: rowIndex }"
+              ></ng-container>
+            </ng-container>
+          </td>
+        </tr>
+      </ng-container>
+
+    </tbody>
+  </table>
+  <div class="empty-overlay" *ngIf="!loading && displayedItems.length === 0">
+    <div class="empty-content">
+      <div class="empty-title">Nenhum registro encontrado</div>
+      <div class="empty-subtitle">Ajuste os filtros ou tente outra pesquisa.</div>
+    </div>
+  </div>
+</div>
+
+<div class="pagination">
+  <div class="info">
+    Pagina {{ currentPage }} de {{ totalPages }} - Mostrando
+    {{ shownCount }} de {{ (isServerSide ? (totalRecords ?? (items || []).length) : (items || []).length) }} registros
+  </div>
+  <div class="controls">
+    <button type="button" [disabled]="currentPage === 1" (click)="goToPage('prev')">Anterior</button>
+    <button type="button" [disabled]="currentPage === totalPages" (click)="goToPage('next')">Proxima</button>
+  </div>
+  <ng-content select="[app-table-pagination]"></ng-content>
+</div>

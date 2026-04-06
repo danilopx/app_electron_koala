@@ -1,0 +1,202 @@
+<div class="producao-page">
+<po-page-default>
+  <po-loading-overlay *ngIf="loagingPage" [p-text]="'Aguarde'"></po-loading-overlay>
+
+  <po-container [p-no-border]="true" [p-no-padding]="true" class="po-m-2">
+    <div class="po-row">
+      <div class="po-xl-3 po-lg-3 po-md-6 po-sm-12 po-mt-2">
+        <po-container class="kpi-card" [p-no-border]="true" [p-no-padding]="true">
+          <div class="kpi-info">
+            <div class="kpi-title">
+              Pedidos
+              <span class="kpi-status kpi-status-aberto">Aberto</span>
+            </div>
+            <div class="kpi-value">{{ totalPedidoAB }}</div>
+            <div class="kpi-subtitle">Última Atualização {{ timenow }}</div>
+          </div>
+          <div class="kpi-action">
+            <po-button class="back-button" p-label="Listar" p-kind="secondary" p-size="small" (p-click)="onKpiClick('AB', totalPedidoAB)"></po-button>
+          </div>
+        </po-container>
+      </div>
+
+      <div class="po-xl-3 po-lg-3 po-md-6 po-sm-12 po-mt-2">
+        <po-container class="kpi-card" [p-no-border]="true" [p-no-padding]="true">
+          <div class="kpi-info">
+            <div class="kpi-title">
+              Pedidos
+              <span class="kpi-status kpi-status-parcial">Fat. Parcial</span>
+            </div>
+            <div class="kpi-value">{{ totalPedidoFP }}</div>
+            <div class="kpi-subtitle">Última Atualização {{ timenow }}</div>
+          </div>
+          <div class="kpi-action">
+            <po-button class="back-button" p-label="Listar" p-kind="secondary" p-size="small" (p-click)="onKpiClick('FP', totalPedidoFP)"></po-button>
+          </div>
+        </po-container>
+      </div>
+
+      <div class="po-xl-3 po-lg-3 po-md-6 po-sm-12 po-mt-2">
+        <po-container class="kpi-card" [p-no-border]="true" [p-no-padding]="true">
+          <div class="kpi-info">
+            <div class="kpi-title">
+              Pedidos
+              <span class="kpi-status kpi-status-faturado">Faturado</span>
+            </div>
+            <div class="kpi-value">{{ totalPedidoFT }}</div>
+            <div class="kpi-subtitle">Última Atualização {{ timenow }}</div>
+          </div>
+          <div class="kpi-action">
+            <po-button class="back-button" p-label="Listar" p-kind="secondary" p-size="small" (p-click)="onKpiClick('FT', totalPedidoFT)"></po-button>
+          </div>
+        </po-container>
+      </div>
+
+      <div class="po-xl-3 po-lg-3 po-md-6 po-sm-12 po-mt-2">
+        <po-container class="kpi-card" [p-no-border]="true" [p-no-padding]="true">
+          <div class="kpi-info">
+            <div class="kpi-title">Pedidos  <span class="kpi-status kpi-status-importar">Importar</span></div>
+            <div class="kpi-value">{{ totalDocuments }}</div>
+            <div class="kpi-subtitle">Última Atualização {{ timenow }}</div>
+          </div>
+          <div class="kpi-action">
+            <po-button p-label="Importar" p-kind="secondary" p-size="small" (p-click)="openModal('import', '')"></po-button>
+          </div>
+        </po-container>
+      </div>
+    </div>
+
+    <div class="table-card po-mt-3">
+      <app-table
+        [p-items]="filteredPedidoEdi"
+        [p-hide-columns-manager]="true"
+        p-container="true"
+        [p-selectable]="false"
+        [p-sort]="true"
+        [p-striped]="true"
+        [p-loading]="loadingState"
+        [p-literals]="customLiterals"
+        [p-columns]="columns"
+        [p-max-columns]="8"
+        [p-page]="currentPage"
+        [p-page-size]="pageSize"
+        [p-total-records]="totalRecords"
+        p-server-side="true"
+        (p-page-change)="onPageChange($event)"
+        (p-show-more)="listPedidos(true, '', '', '')">
+        <div app-table-filters class="minuta-filters">
+          <div class="filter-field">
+            <label for="etlStart">Data inicial</label>
+            <input id="etlStart" type="date" [(ngModel)]="filterStart" />
+          </div>
+          <div class="filter-field">
+            <label for="etlEnd">Data final</label>
+            <input id="etlEnd" type="date" [(ngModel)]="filterEnd" />
+          </div>
+          <div class="filter-actions">
+            <po-button
+              class="secondary"
+              p-label="Filtrar"
+              p-kind="primary"
+              (p-click)="applyDateFilter()">
+            </po-button>
+            <po-button
+              class="secondary ml"
+              p-label="Limpar"
+              p-kind="secondary"
+              (p-click)="clearDateFilter()">
+            </po-button>
+          </div>
+        </div>
+      </app-table>
+    </div>
+  </po-container>
+</po-page-default>
+</div>
+
+
+
+
+<!-- /////////////////////////////////////////////// MOdal ///////////////////////////////////////////////// -->
+
+
+
+
+
+<po-modal
+  #poModalDociumento
+  p-click-out="true"
+  p-size="xl"
+  class="etl-modal system-modal"
+  [p-title]="action === 'log' ? 'Log de importação' : 'Documentos para importação'">
+  <div *ngIf="action === 'import'">
+    <div class="modal-section">
+      <po-list-view
+        p-property-title=""
+        [p-items]="documentosProcessados"
+        [p-select]="true"
+        (p-select)="onSelectItems($event)">
+        <ng-template p-list-view-content-template let-item>
+          <div class="po-row">
+            <po-info class="po-md-12 po-lg-3" p-label="Documento" [p-value]="item.documentId"></po-info>
+
+            <po-info
+              class="po-md-12 po-lg-3"
+              p-label="Pedido Cliente"
+              [p-value]="item.json.cabecalho.cPedido_cliente"
+            ></po-info>
+
+            <po-info class="po-md-12 po-lg-3" p-label="Data" [p-value]="datenow"></po-info>
+
+            <po-info class="po-md-12 po-lg-3" p-label="Total de Itens" [p-value]="item.json.itens.length"></po-info>
+          </div>
+        </ng-template>
+
+        <ng-template p-list-view-detail-template let-item>
+          <div class="po-row modal-subheader">
+            <po-info class="po-md-12 po-lg-3" p-label="Item" [p-value]=""></po-info>
+            <po-info class="po-md-12 po-lg-3" p-label="Código Cliente" [p-value]=""></po-info>
+            <po-info class="po-md-12 po-lg-3" p-label="Quantidade" [p-value]=""></po-info>
+            <po-info class="po-md-12 po-lg-3" p-label="Data de Entrega" [p-value]=""></po-info>
+          </div>
+
+          <div class="po-row" *ngFor="let i of item.json.itens">
+            <po-info class="po-md-12 po-lg-3" p-label="" [p-value]="i.item_pedido"></po-info>
+            <po-info class="po-md-12 po-lg-3" p-label="" [p-value]="i.Cod_prod_cli"></po-info>
+            <po-info class="po-md-12 po-lg-3" p-label="" [p-value]="i.quantidade"></po-info>
+            <po-info
+              class="po-md-12 po-lg-3"
+              p-label=""
+              [p-value]="dataFormateBr.formateDataBr(i.data_entrega)"
+            ></po-info>
+          </div>
+        </ng-template>
+      </po-list-view>
+    </div>
+  </div>
+
+  <div *ngIf="action === 'log'">
+    <div class="modal-log" [innerHTML]="mensagem"></div>
+  </div>
+
+  <po-modal-footer>
+    <div *ngIf="action === 'log'">
+      <po-button
+        p-label="Enviar Log Por Email"
+        p-kind="primary"
+        [p-loading]="loagingButton"
+        (p-click)="enviarLog(mensagem)"
+      ></po-button>
+    </div>
+    <div *ngIf="action === 'import'">
+      <po-button
+        p-label="Importar"
+        p-kind="primary"
+        [p-loading]="loagingButton"
+        [p-disabled]="isImportDisabled"
+        (p-click)="setDocumentos()"
+      >
+      </po-button>
+    </div>
+  </po-modal-footer>
+</po-modal>

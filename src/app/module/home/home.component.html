@@ -1,0 +1,109 @@
+<div class="producao-page home-page">
+  <po-page-default>
+    <po-container [p-no-border]="true" [p-no-padding]="true" class="po-m-2">
+      <div class="home-shell" *ngIf="!isAnonymousLogin; else anonymousHome">
+        <section class="home-printer-alert home-printer-alert--warning" *ngIf="shouldShowPrinterWarning()">
+          <span class="home-printer-alert__icon po-icon po-icon-warning" aria-hidden="true"></span>
+          <div>
+            <strong>Impressora Argox não encontrada.</strong>
+            <p>{{ getPrinterWarningMessage() }}</p>
+          </div>
+        </section>
+
+        <section class="hero-card">
+          <div class="hero-copy">
+            <span class="eyebrow">Central de acesso</span>
+            <h2>Bem-vindo, {{ userName }}.</h2>
+            <p>
+              Acesse rapidamente as principais rotinas do sistema e acompanhe suas operacoes de forma mais simples.
+            </p>
+          </div>
+
+          <div class="calendar-card" aria-hidden="true">
+            <div class="calendar-header">
+              <button type="button" class="calendar-arrow" (click)="changeCalendarMonth(-1)" aria-label="Mes anterior">
+                &#8249;
+              </button>
+              <strong>{{ calendarMonthLabel }} {{ calendarYearLabel }}</strong>
+              <button type="button" class="calendar-arrow" (click)="changeCalendarMonth(1)" aria-label="Proximo mes">
+                &#8250;
+              </button>
+            </div>
+
+            <div class="calendar-week">
+              <span *ngFor="let label of calendarWeekLabels">{{ label }}</span>
+            </div>
+
+            <div class="calendar-grid">
+              <span
+                *ngFor="let day of calendarDays"
+                [class.muted]="day.muted"
+                [class.calendar-day]="day.active"
+                [class.active]="day.active"
+                [class.holiday]="day.holiday"
+                [attr.title]="day.holidayName || null"
+              >
+                {{ day.label }}
+              </span>
+            </div>
+
+            <div class="calendar-legend">
+              <span class="legend-item">
+                <span class="legend-dot today"></span>
+                Hoje
+              </span>
+              <span class="legend-item">
+                <span class="legend-dot holiday"></span>
+                Feriado
+              </span>
+            </div>
+          </div>
+        </section>
+
+        <section class="home-printer-alert home-printer-alert--success" *ngIf="argoxStatus === 'found'">
+          <span class="home-printer-alert__icon po-icon po-icon-ok" aria-hidden="true"></span>
+          <div>
+            <strong>Impressora Argox detectada.</strong>
+            <p>{{ argoxPrinterName }}</p>
+          </div>
+        </section>
+
+        <section class="shortcut-section" *ngIf="quickAccessPrimary.length">
+          <div class="section-header">
+            <div>
+              <h3>Acessos rapidos</h3>
+              <p>Atalhos para as rotinas mais recorrentes do sistema.</p>
+            </div>
+          </div>
+
+          <div class="shortcut-grid primary-grid">
+            <button
+              type="button"
+              class="shortcut-card featured"
+              *ngFor="let item of quickAccessPrimary"
+              (click)="navigateTo(item.rota)"
+            >
+              <span class="shortcut-tag">{{ item.tag }}</span>
+              <strong>{{ item.titulo }}</strong>
+              <p>{{ item.descricao }}</p>
+            </button>
+          </div>
+        </section>
+      </div>
+
+      <ng-template #anonymousHome>
+        <section class="anonymous-home">
+          <h2>Bem-vindo</h2>
+          <p>Você está acessando com login anônimo.</p>
+        </section>
+      </ng-template>
+    </po-container>
+  </po-page-default>
+</div>
+
+<po-modal #poModal class="system-modal" p-title="Configurações" p-click-out="true" p-size="xl">
+  <po-dynamic-form [p-value]="formValue" (p-form)="getFormPedido($event)" [p-fields]="fields"> </po-dynamic-form>
+  <po-modal-footer>
+    <po-button p-label="Salvar" p-kind="primary" (p-click)="alter()"> </po-button>
+  </po-modal-footer>
+</po-modal>

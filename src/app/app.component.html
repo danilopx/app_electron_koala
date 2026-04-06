@@ -1,0 +1,82 @@
+<div class="app-shell">
+  <ng-container *ngIf="isLogged; else loginShell">
+    <app-header></app-header>
+    <div class="content">
+      <app-sidebar [menus]="menus"></app-sidebar>
+      <main class="main">
+        <div class="header" *ngIf="isLogged && pageTitle">
+          <div>
+            <h1>{{ pageTitle }}</h1>
+          </div>
+          <po-button
+            *ngIf="showBack"
+            p-label="Voltar"
+            p-icon="po-icon po-icon-arrow-left"
+            p-kind="secondary"
+            class="back-button"
+            (p-click)="goBack()">
+          </po-button>
+        </div>
+        <!-- Renderiza as Outras Páginas -->
+        <router-outlet></router-outlet>
+      </main>
+    </div>
+  </ng-container>
+  <ng-template #loginShell>
+    <router-outlet></router-outlet>
+  </ng-template>
+</div>
+
+<footer class="app-footer">
+  <span class="footer-version">Versao: {{ appVersion }}</span>
+  <button *ngIf="false" type="button" class="support-button" (click)="openSupportModal()" aria-label="Suporte">
+    <span class="footer-icon" aria-hidden="true">
+      <svg viewBox="0 0 24 24" role="img" focusable="false">
+        <path
+          d="M12 2a8 8 0 0 0-8 8v4a2 2 0 0 0 2 2h1v-6H6a6 6 0 1 1 12 0h-1v6h1a2 2 0 0 0 2-2v-4a8 8 0 0 0-8-8zm-1 16h2v2h-2v-2zm1-6a3 3 0 0 0-3 3h2a1 1 0 1 1 2 0c0 .55-.27.85-.78 1.22-.63.46-1.22.98-1.22 1.78v.5h2v-.5c0-.24.16-.4.66-.77.7-.5 1.34-1.16 1.34-2.23a3 3 0 0 0-3-3z" />
+      </svg>
+    </span>
+    <span>Suporte</span>
+  </button>
+  <a class="footer-link" href="https://www.linkedin.com/company/simplify-solu%C3%A7%C3%B5es/" target="_blank" rel="noopener">
+    <span class="footer-icon" aria-hidden="true">
+      <svg viewBox="0 0 24 24" role="img" focusable="false">
+        <path
+          d="M20.447 20.452h-3.554v-5.569c0-1.328-.027-3.037-1.852-3.037-1.853 0-2.136 1.445-2.136 2.939v5.667H9.351V9h3.414v1.561h.047c.476-.9 1.637-1.85 3.37-1.85 3.602 0 4.268 2.372 4.268 5.456v6.285zM5.337 7.433a2.062 2.062 0 1 1 0-4.124 2.062 2.062 0 0 1 0 4.124zM6.813 20.452H3.861V9h2.952v11.452zM22.225 0H1.771C.792 0 0 .774 0 1.729v20.542C0 23.227.792 24 1.771 24h20.451C23.2 24 24 23.227 24 22.271V1.729C24 .774 23.2 0 22.222 0h.003z" />
+      </svg>
+    </span>
+    <span>Simplify Soluções - © Copyright {{ currentYear }}</span>
+  </a>
+</footer>
+
+<div class="support-backdrop" *ngIf="showSupportModal" (click)="closeSupportModal()"></div>
+<div class="support-modal" *ngIf="showSupportModal" role="dialog" aria-modal="true" aria-label="Suporte">
+  <div class="support-header">
+    <h3>Fale com o suporte</h3>
+    <button type="button" class="support-close" (click)="closeSupportModal()" aria-label="Fechar">
+      ×
+    </button>
+  </div>
+  <form class="support-body" (ngSubmit)="submitSupport()" #supportFormRef="ngForm">
+    <label>
+      <span>Nome</span>
+      <input type="text" name="name" [(ngModel)]="supportForm.name" required />
+    </label>
+    <label>
+      <span>Email</span>
+      <input type="email" name="email" [(ngModel)]="supportForm.email" required />
+    </label>
+    <label>
+      <span>Assunto</span>
+      <input type="text" name="subject" [(ngModel)]="supportForm.subject" placeholder="Ex: Produto nao encontrado" />
+    </label>
+    <label>
+      <span>Mensagem</span>
+      <textarea name="message" rows="4" [(ngModel)]="supportForm.message" required></textarea>
+    </label>
+    <div class="support-actions">
+      <button type="button" class="support-secondary" (click)="closeSupportModal()">Cancelar</button>
+      <button type="submit" class="support-primary" [disabled]="!supportFormRef.valid">Enviar</button>
+    </div>
+  </form>
+</div>

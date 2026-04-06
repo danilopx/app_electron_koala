@@ -1,0 +1,187 @@
+<div class="producao-page">
+  <po-page-default>
+    <po-container [p-no-border]="true" [p-no-padding]="true" class="po-m-2">
+      <div class="header">
+        <div>
+          <h2 class="page-title">Ordens de Produção</h2>
+        </div>
+      </div>
+
+      <app-status-cards
+        [cards]="stepCards"
+        title="Ordens de Produção"
+        [loading]="loadingStatusCounts"
+        [updatedAt]="statusUpdatedAt"
+        (list)="filterByStep($event)"
+      ></app-status-cards>
+
+      <div class="table-card">
+        <app-table
+          [p-items]="filteredOrdens"
+          [p-hide-columns-manager]="true"
+          p-container="true"
+          [p-selectable]="false"
+          [p-sort]="true"
+          [p-striped]="true"
+          [p-literals]="customLiterals"
+          [p-loading]="loadingState"
+          [p-columns]="columns"
+          [p-max-columns]="8"
+          [p-page]="currentPage"
+          [p-page-size]="pageSize"
+          [p-auto-collapse]="true"
+        >
+          <div app-table-filters class="minuta-filters">
+            <div class="filter-field">
+              <label for="producaoNumero">Ordem</label>
+              <input id="producaoNumero" type="text" [(ngModel)]="filterNumero" placeholder="000001" />
+            </div>
+            <div class="filter-field">
+              <label for="producaoProduto">Produto</label>
+              <input id="producaoProduto" type="text" [(ngModel)]="filterProduto" placeholder="PA0001" />
+            </div>
+            <div class="filter-field">
+              <label for="producaoDataDe">Data de</label>
+              <input id="producaoDataDe" type="date" [(ngModel)]="filterDataDe" />
+            </div>
+            <div class="filter-field">
+              <label for="producaoDataAte">Data até</label>
+              <input id="producaoDataAte" type="date" [(ngModel)]="filterDataAte" />
+            </div>
+            <div class="filter-field">
+              <label for="producaoStep">Status</label>
+              <select id="producaoStep" [(ngModel)]="currentStepFilter">
+                <option *ngFor="let step of stepOptions" [value]="step.value">{{ step.label }}</option>
+              </select>
+            </div>
+            <div class="filter-actions">
+              <po-button class="secondary" p-label="Filtrar" p-kind="primary" (p-click)="applyFilters()"></po-button>
+              <po-button class="secondary ml" p-label="Limpar" p-kind="secondary" (p-click)="clearFilters()"></po-button>
+            </div>
+          </div>
+
+          <ng-template p-table-row-template let-rowItem let-i="rowIndex">
+            <po-widget>
+              <div class="po-row widget-header">
+                <div class="po-md-8">
+                  <div class="ordem-title-row">
+                    <div class="ordem-title">OP {{ rowItem.op_chave || (rowItem.op_numero + rowItem.op_item + rowItem.op_sequencia) }}</div>
+                    <span class="status-pill">
+                      <span [class]="getStatusDotClass(rowItem.op_status)" aria-hidden="true"></span>
+                      <span>{{ getStatusLabel(rowItem.op_status) }}</span>
+                    </span>
+                  </div>
+                  <div class="ordem-subtitle">{{ rowItem.produto_codigo }} - {{ rowItem.produto_descricao }}</div>
+                  <div class="ordem-client" *ngIf="rowItem.op_cliente">{{ rowItem.op_cliente }}</div>
+                </div>
+                <div class="po-md-4 header-badges">
+                  <po-button p-icon="po-icon-eye" p-label="Ver mais" p-kind="secondary" (p-click)="openDetalhe(rowItem)"></po-button>
+                </div>
+              </div>
+
+              <div class="summary-layout">
+                <div class="summary-grid">
+                  <div class="summary-item">
+                    <span>Produto</span>
+                    <strong>{{ rowItem.op_produto }}</strong>
+                  </div>
+                  <div class="summary-item">
+                    <span>Tipo Produto</span>
+                    <strong>{{ rowItem.produto_tipo || '-' }}</strong>
+                  </div>
+                  <div class="summary-item">
+                    <span>UM</span>
+                    <strong>{{ rowItem.op_um }}</strong>
+                  </div>
+                  <div class="summary-item">
+                    <span>Quantidade</span>
+                    <strong>{{ rowItem.op_quantidade }}</strong>
+                  </div>
+                  <div class="summary-item">
+                    <span>Apontado</span>
+                    <strong>{{ rowItem.op_quant_apontada }}</strong>
+                  </div>
+                  <div class="summary-item">
+                    <span>Saldo</span>
+                    <strong>{{ rowItem.op_saldo }}</strong>
+                  </div>
+                  <div class="summary-item">
+                    <span>Emissao</span>
+                    <strong>{{ formatDate(rowItem.op_emissao) }}</strong>
+                  </div>
+                  <div class="summary-item">
+                    <span>Prev. Inicio</span>
+                    <strong>{{ formatDate(rowItem.op_data_prev_ini) }}</strong>
+                  </div>
+                  <div class="summary-item">
+                    <span>Prev. Fim</span>
+                    <strong>{{ formatDate(rowItem.op_data_prev_fim) }}</strong>
+                  </div>
+                  <div class="summary-item">
+                    <span>Fim Real</span>
+                    <strong>{{ formatDate(rowItem.op_data_fim_real) || '-' }}</strong>
+                  </div>
+                </div>
+
+                <div class="gauge-card">
+                  <span class="gauge-label">Avanco da OP</span>
+                  <div class="gauge-shell" [style.background]="getGaugeBackground(rowItem)">
+                    <div class="gauge-core">
+                      <strong>{{ getProgress(rowItem) }}%</strong>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <div class="observation" *ngIf="rowItem.op_observacao">
+                <strong>Observacao:</strong> {{ rowItem.op_observacao }}
+              </div>
+
+              <div class="intermediate-block" *ngIf="rowItem.op_intermediarias?.length">
+                <div class="intermediate-title">Ordens intermediarias ({{ rowItem.op_qtd_intermediaria }})</div>
+                <div class="intermediate-grid">
+                  <div class="intermediate-card" *ngFor="let item of rowItem.op_intermediarias">
+                    <div class="intermediate-card__header">
+                      <div class="intermediate-number-row">
+                        <div class="intermediate-number">OP {{ item.op_chave || (item.op_numero + item.op_item + item.op_sequencia) }}</div>
+                        <span class="status-pill status-pill--small">
+                          <span [class]="getStatusDotClass(item.op_status)" aria-hidden="true"></span>
+                          <span>{{ getStatusLabel(item.op_status) }}</span>
+                        </span>
+                      </div>
+                    </div>
+                    <div class="intermediate-summary-layout">
+                      <div class="intermediate-summary-main">
+                        <div class="intermediate-product intermediate-product--wide">
+                          {{ item.produto_codigo }} - {{ item.produto_descricao }}
+                        </div>
+                        <div class="intermediate-info">
+                          <span>Tipo: <strong>{{ item.produto_tipo || '-' }}</strong></span>
+                          <span>Qtd: <strong>{{ item.op_quantidade }}</strong></span>
+                          <span>Apontado: <strong>{{ item.op_quant_apontada }}</strong></span>
+                          <span>Saldo: <strong>{{ item.op_saldo }}</strong></span>
+                        </div>
+                        <div class="intermediate-dates">
+                          <span>Inicio: {{ formatDate(item.op_data_prev_ini) }}</span>
+                          <span>Fim: {{ formatDate(item.op_data_prev_fim) }}</span>
+                        </div>
+                      </div>
+
+                      <div class="gauge-card gauge-card--small">
+                        <div class="gauge-shell gauge-shell--small" [style.background]="getGaugeBackground(item)">
+                          <div class="gauge-core gauge-core--small">
+                            <strong>{{ getProgress(item) }}%</strong>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </po-widget>
+          </ng-template>
+        </app-table>
+      </div>
+    </po-container>
+  </po-page-default>
+</div>

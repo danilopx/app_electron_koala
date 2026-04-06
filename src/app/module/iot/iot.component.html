@@ -1,0 +1,59 @@
+<div class="producao-page">
+  <po-page-default>
+    <po-container [p-no-border]="true" [p-no-padding]="false" class="po-m-2">
+      <div class="producao-toolbar">
+        <div class="producao-search iot-search">
+          <form [formGroup]="reactiveForm" class="iot-form">
+            <div class="po-row">
+              <div class="po-md-4">
+                <po-input
+                  class="po-md-12"
+                  formControlName="ordem"
+                  [p-minlength]="11"
+                  [p-maxlength]="11"
+                  p-clean
+                  p-icon="po-icon po-icon-document"
+                  p-label="Ordem de Produção"
+                >
+                </po-input>
+              </div>
+              <div class="po-md-2">
+                <po-button class="po-md-12 po-pt-4" p-label="Buscar" [p-disabled]="!reactiveForm.valid" (p-click)="saveForm()">
+                </po-button>
+              </div>
+              <div class="po-md-2">
+                <po-button class="po-md-12 po-pt-4" p-label="Tela Inteira" [p-disabled]="!pdfSrc" (p-click)="openZoomModal()">
+                </po-button>
+              </div>
+
+              <div class="po-md-4">
+                <po-info p-label="Produto" [p-value]="produtoView"> > </po-info>
+              </div>
+            </div>
+          </form>
+        </div>
+      </div>
+
+      <po-container [p-no-border]="false" [p-no-padding]="false" class="po-mt-2 iot-card">
+        <pdf-viewer
+          class="iot-pdf"
+          [src]="pdfSrc"
+          [render-text]="false"
+          [original-size]="true"
+          [show-all]="true"
+          [zoom]="1"
+          style="display: block; width: 100%; height: 80vh">
+        </pdf-viewer>
+      </po-container>
+    </po-container>
+
+    <po-loading-overlay *ngIf="loadingState" [p-screen-lock]="false"></po-loading-overlay>
+  </po-page-default>
+</div>
+
+<po-modal #zoomModal p-size="xl" class="iot-zoom-modal system-modal" [p-title]="zoomTitle" p-click-out="true" [p-hide-close]="false">
+  <div class="iot-zoom-body" #zoomBody>
+    <img class="iot-pdf-image" *ngIf="pdfImageUrl" [src]="pdfImageUrl" alt="PDF" />
+  </div>
+</po-modal>
+

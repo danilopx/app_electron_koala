@@ -1,0 +1,87 @@
+/* You can add global styles to this file, and also import other style files */
+
+/* Global button size reduction (~20%) */
+:root .po-button {
+  font-size: 12px;
+  padding: 6px 12px;
+  min-height: 32px;
+}
+
+/* Global input height reduction (~20% from 45px -> 36px) */
+.po-field-container .po-field-container-content > .po-input,
+.po-field-container .po-field-container-content > input.po-input,
+.po-field-container .po-field-container-content > select.po-select,
+.po-field-container .po-field-container-content > textarea.po-input,
+.po-field-container .po-field-container-content .po-input,
+.po-field-container .po-field-container-content .po-select,
+.po-field-container .po-field-container-content .po-datepicker,
+.po-field-container .po-field-container-content .po-datepicker input.po-input,
+.po-input-container .po-input {
+  padding: 6px 8px !important;
+  height: 29px !important;
+  min-height: 29px !important;
+  block-size: 29px !important;
+  min-block-size: 29px !important;
+  font-size: 11px !important;
+  line-height: 1.1 !important;
+  box-sizing: border-box;
+}
+
+input.po-input,
+select.po-select,
+textarea.po-input {
+  padding: 6px 8px !important;
+  height: 29px !important;
+  min-height: 29px !important;
+  block-size: 29px !important;
+  min-block-size: 29px !important;
+  font-size: 11px !important;
+  line-height: 1.1 !important;
+  box-sizing: border-box;
+}
+
+/* Slightly smaller back buttons */
+.back-button .po-button {
+  font-size: 11px;
+  padding: 5px 10px;
+  min-height: 28px;
+}
+
+/* Ensure Po UI primary kind matches system blue */
+.po-button-primary {
+  background: #1f7ae0;
+  border-color: #1f7ae0;
+  color: #fff;
+}
+
+.po-button-primary:hover {
+  background: #1967b8;
+  border-color: #1967b8;
+}
+
+/* Global primary/secondary button styles (match /edi/etl) */
+:root ::ng-deep .primary .po-button,
+:root ::ng-deep .po-button.primary {
+  background: #1f7ae0;
+  border-color: #1f7ae0;
+  color: #fff;
+}
+
+:root ::ng-deep .primary .po-button:hover,
+:root ::ng-deep .po-button.primary:hover {
+  background: #1967b8;
+  border-color: #1967b8;
+}
+
+:root ::ng-deep .secondary .po-button,
+:root ::ng-deep .po-button.secondary {
+  border-color: #1f7ae0;
+  color: #1f7ae0;
+}
+
+:root ::ng-deep .secondary .po-button:hover,
+:root ::ng-deep .po-button.secondary:hover {
+  background: #e0f2fe;
+  border-color: #1f7ae0;
+  color: #1f7ae0;
+}

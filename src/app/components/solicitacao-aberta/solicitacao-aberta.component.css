@@ -1,0 +1,24 @@
+/* Aplicar Estilo "Geral" no Status Inteiro. */
+.estilo_status {
+  padding: 3px 10px;
+  border-radius: 3px;
+  color: #fff;
+  width: 100px;
+  text-align: center;
+  box-shadow:
+    0 4px 8px 0 rgba(0, 0, 0, 0.2),
+    0 6px 20px 0 rgba(0, 0, 0, 0.19);
+  font-size: 10px;
+}
+
+/* Estilos Individuais em cada valor retornado do status */
+
+/* D --> Em Atendimento. */
+.estilo_status.D {
+  background-color: #82b1ff;
+}
+
+/* A --> Aguardando Atendimento */
+.estilo_status.A {
+  background-color: #ffb515;
+}

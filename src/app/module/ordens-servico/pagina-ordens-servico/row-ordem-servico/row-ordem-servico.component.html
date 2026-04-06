@@ -1,0 +1,134 @@
+<po-widget>
+  <ng-container>
+
+
+    <div class="po-row info">
+      <po-info class="po-md-12 align-info po-mb-1" p-label="Ordem de Serviço | S.S.:"
+        [p-orientation]="PoInfoOrientation.Horizontal"
+        [p-value]=" ordemServico.ordem_id  +'/'+ ordemServico.solicitacao_id">
+      </po-info>
+      <po-info class="po-md-3 align-info" p-label="Empresa:" [p-value]=" ordemServico.solicitacao_filial">
+      </po-info>
+
+      <po-info class="po-md-3 align-info" p-label="Setor:"
+        [p-value]="ordemServico.ordem_codsetor +'-'+ordemServico.setor_nome">
+      </po-info>
+      <po-info class="po-md-3 align-info" p-label="Equipamento:"
+        [p-value]="ordemServico.equipamento_id+'-'+ordemServico.equipamento_nome">
+      </po-info>
+      <po-info class="po-md-3 align-info" p-label="Prioridade:"
+        [p-value]="ordemServico.solicitacao_prioridade2?.toUpperCase()"></po-info>
+
+
+
+      <po-info class="po-md-3 align-info" p-label="Solicitante:"
+        [p-value]="ordemServico.solicitacao_usuario?.toUpperCase()"></po-info>
+
+      <po-info class="po-md-3 align-info" p-label="Executor:"
+        [p-value]="ordemServico.executor_matricula+'-'+ordemServico.executor_nome?.toUpperCase()"></po-info>
+      <po-info class="po-md-3 align-info" p-label="Tipo" [p-value]="ordemServico.ordem_cod_servico"></po-info>
+
+      <po-info class="po-md-3 align-info" p-label="Status"
+        [p-value]="getStatusDescriptionFromString(ordemServico.solicitacao_step ?? '')"></po-info>
+
+
+      <po-info class="po-md-3 align-info" p-label="Data Abertura:"
+        *ngIf="ordemServico.ordem_data!.trim() !== ''; else noData"
+        [p-value]="formatarDataBrasileira(ordemServico.ordem_data??'') + ' ' + ordemServico.solicitacao_horaber">
+        > </po-info>
+      <ng-template #noData>
+        <po-info class="po-md-3 align-info" p-label="Data Abertura:"
+          [p-value]="formatarDataBrasileira(ordemServico.solicitacao_databer??'') + ' ' + ordemServico.solicitacao_horaber">
+          > </po-info>
+      </ng-template>
+
+      <po-info class="po-md-3 align-info" p-label="Data Inicio da Manutenção:"
+        [p-value]="formatarDataBrasileira(ordemServico.ordem_data_real_inicio_manutencao??'')+' '+ordemServico.ordem_hora_real_inicio_manutencao"></po-info>
+
+      <po-info class="po-md-3 align-info" p-label="Data Final da Manutenção:"
+        [p-value]="formatarDataBrasileira(ordemServico.ordem_data_real_fim_manutencao??'')+' '+ordemServico.ordem_hora_real_fim_manutencao"></po-info>
+
+
+
+
+    </div>
+
+    <!-- Row de Detalhes da Ordem de Serviço 
+    <div class="po-row os-row-detalhes">
+
+      
+      <div class="po-md-4 os-col-detalhes">
+        
+        <span class="po-sm-12 po-mt-1 po-font-text-large-bold">OS / SS: <span class="po-font-text-large"></span> {{ ordemServico.ordem_id }} / {{ordemServico.solicitacao_id}}</span>
+
+        <span class="po-sm-12 po-mt-1 po-font-text-large-bold">
+            Equipamento: <span class="po-font-text-large">{{ ordemServico.ordem_equipamento }}</span>
+          </span>
+
+        <span class="po-sm-12 po-mt-1 po-font-text-large-bold">
+            Filial: <span class="po-font-text-large">{{ ordemServico.ordem_filial }}</span>
+          </span>
+      </div>
+
+      
+      <div class="po-md-4 os-col-detalhes">
+        <div class="po-sm-12 po-mt-1">
+          <po-info class="po-md-4" p-label="Distribuido"
+                   p-value="{{ ordemServico.ordem_data_previsto_inicio_manutencao}} {{ordemServico.ordem_hora_previsto_inicio_manutencao}}"></po-info>
+          <po-info class="po-md-4" p-label="Atendendo"
+                   p-value="{{ ordemServico.ordem_data_real_inicio_manutencao }} {{ ordemServico.ordem_hora_real_inicio_manutencao }}"></po-info>
+          <po-info class="po-md-4" p-label="Finalizado"
+                   p-value="{{ ordemServico.ordem_data_fim_atendimento }} {{ ordemServico.ordem_hora_fim_atendimento }}"></po-info>
+        </div>
+
+        <span class="po-sm-6 po-mb-1">Início do Atendimento</span>
+        <span class="po-sm-6 po-text-right">Fim do Atendimento</span>
+
+      </div>
+
+      <div class="po-md-4 os-col-detalhes">
+
+       
+        <span class="po-sm-12 po-font-subtitle">Prioridade:
+            <span class="simplify-badge-prioridade fa"
+                  [ngClass]="{
+                    'fa-exclamation-triangle alta': ordemServico.solicitacao_prioridade === '1',
+                    'fa-info-circle baixa': ordemServico.solicitacao_prioridade === '3'
+                  }"
+            >
+                {{
+                ordemServico.solicitacao_prioridade === '1' ? 'ALTA' :
+                  ordemServico.solicitacao_prioridade === '3' ? 'BAIXA' : ''
+              }}
+            </span>
+        </span>
+
+        <span class="po-sm-12 po-mt-1 po-font-text-large-bold">Executor:
+            <span class="po-font-text-large">{{ ordemServico.executor_nome }}</span>
+        </span>
+
+        <span class="po-sm-12 po-mt-1 po-font-text-large-bold ">Tipo de Problema:
+            <span class="po-font-text-large"> {{ ordemServico.ordem_cod_servico }} &nbsp; <span
+              class="fa fa-bolt"></span></span>
+          </span>
+
+       Angular - Attribute Binding: Vinculação do SVG com o CSS.
+       Referência: https://angular.io/guide/attribute-binding 
+      </div>
+
+      <div class="po-md-4">
+        <span class="po-sm-12 po-mt-1 po-font-text-large-bold">Descrição:
+            <span class="po-font-text-large">{{ ordemServico.solicitacao_descricao }}</span>
+        </span>
+      </div>
+
+    </div>-->
+
+    <!-- Row de Interação com a Ordem de Serviço -->
+    <div class="po-row">
+      <po-button class="po-md-12 po-mt-2" p-icon="fa fa-info-circle" p-label="Verificar Ordem de Serviço"
+        (p-click)="verDetalhesDaOs(ordemServico)"></po-button>
+    </div>
+
+  </ng-container>
+</po-widget>

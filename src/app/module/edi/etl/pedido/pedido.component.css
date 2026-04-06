@@ -1,0 +1,264 @@
+:host {
+  display: block;
+  color: var(--color-text);
+}
+
+.pedido-page {
+  padding: 6px 20px 28px;
+}
+
+.breadcrumb {
+  margin-left: 0;
+}
+
+.header h1 {
+  margin-left: 0;
+}
+
+.actions-header {
+  display: flex;
+  gap: 10px;
+  margin-right: 10px;
+}
+
+.detail-card {
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  padding: 18px 18px 12px;
+  box-shadow: 0 2px 6px rgba(17, 24, 39, 0.06);
+}
+
+.alert.error {
+  margin-bottom: 12px;
+  padding: 10px 12px;
+  border-radius: 8px;
+  border: 1px solid #fecaca;
+  background: #fef2f2;
+  color: #b91c1c;
+  white-space: pre-line;
+}
+
+.empty-state {
+  margin-top: 16px;
+  padding: 16px 18px;
+  border: 1px dashed var(--color-border);
+  border-radius: var(--radius-md);
+  color: var(--color-muted);
+  background: var(--color-surface);
+}
+
+.notes {
+  margin: 12px 0 20px;
+}
+
+.notes h2,
+.items h2 {
+  margin: 0 0 10px;
+  font-size: 16px;
+  font-weight: 700;
+  color: var(--color-text);
+}
+
+.observacao {
+  margin: 0 0 18px;
+  padding: 12px;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  background: var(--color-surface-muted);
+}
+
+.observacao h2 {
+  margin: 0 0 6px;
+  font-size: 16px;
+}
+
+.observacao p {
+  margin: 0;
+  color: #475569;
+  font-size: 13px;
+  line-height: 1.45;
+}
+
+.notes-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.note-pill {
+  display: inline-flex;
+  align-items: center;
+  padding: 4px 10px;
+  border-radius: 999px;
+  border: 1px solid var(--color-border);
+  background: var(--color-surface-muted);
+  font-size: 12px;
+  color: var(--color-text);
+  cursor: pointer;
+  appearance: none;
+  font-family: inherit;
+}
+
+.note-pill:hover {
+  background: var(--color-primary-soft);
+  border-color: var(--color-primary);
+  color: var(--color-primary);
+}
+
+.box-notas .nota-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.nota-empty {
+  color: var(--color-muted);
+  font-size: 13px;
+}
+
+.nota-modal {
+  display: grid;
+  gap: 12px;
+}
+
+.nota-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+  gap: 12px;
+}
+
+.nota-chave {
+  display: grid;
+  gap: 6px;
+  font-size: 12px;
+  color: var(--color-muted);
+}
+
+.nota-chave-value {
+  word-break: break-all;
+  color: var(--color-text);
+  font-size: 12px;
+}
+
+.nota-items h3 {
+  margin: 0 0 8px;
+  font-size: 14px;
+  font-weight: 700;
+}
+
+.meta {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(210px, 1fr));
+  gap: 12px;
+  margin-bottom: 16px;
+}
+
+.box {
+  border: 1px solid var(--color-border);
+  border-radius: 10px;
+  padding: 10px 12px;
+  background: #fbfdff;
+  display: grid;
+  gap: 6px;
+}
+
+.label {
+  display: block;
+  font-size: 11px;
+  color: var(--color-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+}
+
+.box strong {
+  font-size: 14px;
+}
+
+.box strong {
+  text-transform: uppercase;
+}
+
+.table-wrapper {
+  overflow-x: auto;
+}
+
+.orders-table {
+  width: 100%;
+  border-collapse: collapse;
+  min-width: 720px;
+}
+
+.orders-table tfoot td {
+  font-weight: 700;
+}
+
+:host ::ng-deep .primary .po-button {
+  background: #1f7ae0;
+  border-color: #1f7ae0;
+  color: #fff;
+}
+
+:host ::ng-deep .primary .po-button:hover {
+  background: #1967b8;
+  border-color: #1967b8;
+}
+
+:host ::ng-deep .secondary .po-button {
+  border-color: #1f7ae0;
+  color: #1f7ae0;
+}
+
+:host ::ng-deep .secondary .po-button:hover {
+  background: #e0f2fe;
+  border-color: #1f7ae0;
+  color: #1f7ae0;
+}
+
+:host ::ng-deep .tag-open .po-tag {
+  background: #dcfce7;
+  color: #166534;
+  border-color: #86efac;
+}
+
+:host ::ng-deep .tag-delivered .po-tag {
+  background: #fee2e2;
+  color: #b91c1c;
+  border-color: #fecaca;
+}
+
+:host ::ng-deep .tag-partial .po-tag {
+  background: #ffedd5;
+  color: #9a3412;
+  border-color: #fed7aa;
+}
+
+:host ::ng-deep .tag-analysis .po-tag {
+  background: #dbeafe;
+  color: #1f7ae0;
+  border-color: #bfdbfe;
+}
+
+:host ::ng-deep .tag-rejected .po-tag {
+  background: #fce7f3;
+  color: #be185d;
+  border-color: #fbcfe8;
+}
+
+:host ::ng-deep .tag-other .po-tag {
+  background: #fef3c7;
+  color: #92400e;
+  border-color: #fde68a;
+}
+
+@media print {
+  app-header,
+  app-sidebar,
+  .actions-header {
+    display: none;
+  }
+  :host,
+  .pedido-page {
+    background: #fff;
+  }
+}

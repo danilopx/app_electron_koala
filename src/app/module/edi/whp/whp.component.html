@@ -1,0 +1,229 @@
+<po-page-default>
+  <po-loading-overlay *ngIf="loagingPage" [p-text]="'Aguarde'"></po-loading-overlay>
+
+  <div class="po-row" style="position: relative">
+
+    <po-widget
+      class="po-lg-3 po-mt-2"
+      [p-height]="200"
+      p-primary-label="Listar"
+      (p-primary-action)="listPedidos(false, '', '', 'AB')">
+      <div class="po-font-subtitle po-text-center">{{ totalPedidoAB }}</div>
+      <div class="po-text-center">Última Atualização {{ timenow }}</div>
+    </po-widget>
+
+    <po-widget
+      class="po-lg-3 po-mt-2"
+      [p-height]="200"
+      p-primary-label="Listar"
+      (p-primary-action)="listPedidos(false, '', '', 'FP')">
+      <div class="po-font-subtitle po-text-center">{{ totalPedidoFP }}</div>
+      <div class="po-text-center">Última Atualização {{ timenow }}</div>
+    </po-widget>
+
+    <po-widget
+      class="po-lg-3 po-mt-2"
+      [p-height]="200"
+      p-primary-label="Listar"
+      (p-primary-action)="listPedidos(false, '', '', 'FT')">
+      <div class="po-font-subtitle po-text-center">{{ totalPedidoFT }}</div>
+      <div class="po-text-center">Última Atualização {{ timenow }}</div>
+    </po-widget>
+
+    <po-widget
+      class="po-lg-3 po-mt-2"
+      [p-height]="200"
+      p-primary-label="Importar"
+      (p-primary-action)="openModal('import', '')">
+      <div class="po-font-subtitle po-text-center">{{ totalDocuments }}</div>
+      <div class="po-text-center">Última Atualização {{ timenow }}</div>
+    </po-widget>
+
+  </div>
+
+  <po-divider></po-divider>
+
+  <po-tabs>
+    <po-tab p-label="Pedidos" [p-active]="true">
+      <div class="table-card">
+  <app-table
+        [p-items]="pedidoEdi"
+        [p-hide-columns-manager]="true"
+        p-container="true"
+        [p-selectable]="false"
+        [p-sort]="true"
+        [p-striped]="true"
+        [p-loading]="loadingState"
+        [p-literals]="customLiterals"
+        [p-columns]="columns"
+        [p-max-columns]="7"
+        (p-show-more)="listPedidos(true, '', '', '')">
+
+        <ng-template p-table-row-template let-rowItem let-i="rowIndex">
+          <div class="po-row">
+
+            <div class="po-md-3">
+              <span class="po-font-text-large-bold">
+                Informações do Pedido: {{ rowItem.filial }} / {{ rowItem.numero }}
+              </span>
+            </div>
+
+            <!-- Botões de ação -->
+            <div *ngIf="rowItem.step === '3' && rowItem.status !== 'AG'">
+              <po-button
+                class="po-mb-2 po-pull-right po-m-1"
+                p-icon="po-icon po-icon-document"
+                (p-click)="classPedido(rowItem.filial, rowItem.numero, rowItem.xtipo)"
+                p-label="Classificar">
+              </po-button>
+            </div>
+
+            <div *ngIf="rowItem.step === '3' && rowItem.status === 'AG'">
+              <div class="po-md-9 po-text-right">
+                <po-tag p-value="Aguardando Transmissão" p-color="red"></po-tag>
+              </div>
+            </div>
+
+            <po-button
+              *ngIf="rowItem.step === '4' || (rowItem.step === '3' && rowItem.status !== 'AG')"
+              class="po-mb-2 po-pull-right po-m-1"
+              p-icon="po-icon po-icon-document"
+              (p-click)="viewPedido(rowItem.filial, rowItem.numero, rowItem.xtipo)"
+              p-label="Visualizar Nota Fiscal">
+            </po-button>
+
+            <po-button
+              *ngIf="rowItem.step === '2' && rowItem.status !== 'AG'"
+              class="po-mb-2 po-pull-right po-m-1"
+              p-icon="po-icon po-icon-document"
+              (p-click)="invoicePedido(rowItem.filial, rowItem.numero, rowItem.xtipo)"
+              p-label="Gerar Nota Fiscal">
+            </po-button>
+
+            <po-button
+              *ngIf="rowItem.step === '0' || rowItem.step === '1'"
+              class="po-mb-2 po-pull-right po-m-1"
+              p-icon="po-icon po-icon-document"
+              (p-click)="releasePedido(rowItem.filial, rowItem.numero, rowItem.xtipo)"
+              p-label="Liberar Estoque">
+            </po-button>
+
+            <po-button
+              *ngIf="rowItem.step === '0' || rowItem.step === '1' || (rowItem.step === '2' && rowItem.status !== 'AG')"
+              class="po-mb-2 po-pull-right po-m-1"
+              p-icon="po-icon po-icon-document"
+              (p-click)="editPedido(rowItem.filial, rowItem.numero, rowItem.xtipo)"
+              p-label="Editar Pedido">
+            </po-button>
+          </div>
+
+          <po-divider></po-divider>
+
+          <div class="po-row">
+            <po-stepper [p-sequential]="true">
+              <po-step p-label="Pedido"></po-step>
+              <po-step p-label="Liberação de Estoque"></po-step>
+              <po-step p-label="Faturamento"></po-step>
+              <po-step p-label="Classificação"></po-step>
+              <po-step p-label="Finalizado"></po-step>
+            </po-stepper>
+          </div>
+
+          <div class="po-row info">
+            <po-info class="po-md-3 align-info" p-label="Nota Fiscal" [p-value]="getNotaFiscalValue(rowItem)"></po-info>
+            <po-info class="po-md-2 align-info" p-label="Tabela de Preço" [p-value]="getTabelaValue(rowItem)"></po-info>
+            <po-info class="po-md-2 align-info" p-label="Condição Pgto" [p-value]="getCondicaoPgtoValue(rowItem)"></po-info>
+            <po-info class="po-md-2 align-info" p-label="Data do Pedido" [p-value]="getDataFaturadoValue(rowItem)"></po-info>
+            <po-info class="po-md-3 align-info" p-label="Classificação" [p-value]="getClassificacaoValue(rowItem)"></po-info>
+          </div>
+        </ng-template>
+      </app-table>
+</div>
+    </po-tab>
+  </po-tabs>
+</po-page-default>
+<po-modal
+  #poModalDociumento
+  class="system-modal"
+  [p-title]="action === 'import' ? 'Importar Documentos' : 'Detalhes do Log'"
+  p-click-out="true"
+  p-size="xl"
+>
+  <div *ngIf="action === 'import'">
+    <po-list-view p-property-title="" [p-items]="documentosProcessados" [p-select]="true">
+      <ng-template p-list-view-content-template let-item>
+        <div class="po-row">
+          <!-- <po-info class="po-md-12 po-lg-1" p-label="Item" [p-value]="item.nitem"></po-info>
+
+        <po-info class="po-md-12 po-lg-1" p-label="Código" [p-value]="item.codigo"></po-info> -->
+
+          <po-info class="po-md-12 po-lg-3" p-label="Documento" [p-value]="item.documentId"></po-info>
+
+          <po-info
+            class="po-md-12 po-lg-3"
+            p-label="Pedido Cliente"
+            [p-value]="item.json.cabecalho.cPedido_cliente"
+          ></po-info>
+
+          <po-info class="po-md-12 po-lg-3" p-label="Data" [p-value]="datenow"></po-info>
+
+          <po-info class="po-md-12 po-lg-3" p-label="Todal de Itens" [p-value]="item.json.itens.length"></po-info>
+        </div>
+      </ng-template>
+
+      <ng-template p-list-view-detail-template let-item>
+        <po-divider></po-divider>
+        <div class="po-row">
+          <po-info class="po-md-12 po-lg-3" p-label="Item" [p-value]=""></po-info>
+
+          <po-info class="po-md-12 po-lg-3" p-label="Código Cliente" [p-value]=""></po-info>
+
+          <po-info class="po-md-12 po-lg-3" p-label="Quantidade" [p-value]=""></po-info>
+
+          <po-info class="po-md-12 po-lg-3" p-label="Data de Entrega" [p-value]=""></po-info>
+        </div>
+
+        <div class="po-row" *ngFor="let i of item.json.itens">
+          <po-info class="po-md-12 po-lg-3" p-label="" [p-value]="i.item_pedido"></po-info>
+
+          <po-info class="po-md-12 po-lg-3" p-label="" [p-value]="i.Cod_prod_cli"></po-info>
+
+          <po-info class="po-md-12 po-lg-3" p-label="" [p-value]="i.quantidade"></po-info>
+
+          <po-info
+            class="po-md-12 po-lg-3"
+            p-label=""
+            [p-value]="dataFormateBr.formateDataBr(i.data_entrega)"
+          ></po-info>
+        </div>
+      </ng-template>
+    </po-list-view>
+  </div>
+
+  <div *ngIf="action === 'log'">
+    <div [innerHTML]="mensagem"></div>
+  </div>
+
+  <po-modal-footer>
+    <div *ngIf="action === 'log'">
+      <po-button
+        p-label="Enviar Log Por Email"
+        p-kind="primary"
+        [p-loading]="loagingButton"
+        (p-click)="enviarLog(mensagem)"
+      ></po-button>
+    </div>
+    <div *ngIf="action === 'import'">
+      <po-button
+        p-label="Importar"
+        p-kind="primary"
+        [p-loading]="loagingButton"
+        [p-disabled]="disabledButton"
+        (p-click)="setDocumentos()"
+      >
+      </po-button>
+    </div>
+  </po-modal-footer>
+</po-modal>
+
+

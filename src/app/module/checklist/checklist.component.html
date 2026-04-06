@@ -1,0 +1,109 @@
+<po-page-default>
+  <po-widget>
+    <div class="po-md-1">
+      <img  width="50" height="50" src="../../../assets/checklist.png" alt="checklist">
+    </div>
+    <div class="po-md-11 po-mt-2">
+      <po-info
+        p-label="Informação"
+        p-value=" Explore as ações abaixo e descubra as possibilidades para garantir a sua produtividade e crescimento!"
+        [p-orientation]="orientation"
+      >
+      </po-info>
+    </div>
+  </po-widget>
+
+  <!-- Ações rápidas -->
+  <po-container>
+    <po-divider p-label="Ações rápidas"></po-divider>
+
+    <div class="po-row po-mb-3">
+      <div class="po-md-4">
+        <po-widget (p-click)="newUnidade()">
+          <div class="po-md-2">
+         
+            <img  width="50" height="50" src="../../../assets/checklist.png" alt="checklist">
+         </div>
+         <div class="po-md-10">
+          <p>Construa checklists do zero ou use modelos para suas auditorias.</p>
+        </div>
+        </po-widget>
+      </div>
+
+      <div class="po-md-4">
+        <po-widget (p-click)="newUnidade()">
+          <div class="po-md-2">
+         
+            <img  width="50" height="50" src="../../../assets/checklist.png" alt="checklist">
+         </div>
+         <div class="po-md-10">
+          <p>Adicione as unidades que serão avaliadas nos seus checklists.</p>
+        </div>
+        </po-widget>
+      </div>
+
+      <div class="po-md-4">
+        <po-widget (p-click)="newUnidade()">
+          <div class="po-md-2">
+         
+            <img  width="50" height="50" src="../../../assets/checklist.png" alt="checklist">
+         </div>
+         <div class="po-md-10">
+          <p>Traga seus usuário Protheus para usar o Checklist.</p>
+          </div>
+        </po-widget>
+      </div>
+
+      <div class="po-md-4">
+        <po-widget (p-click)="newUnidade()">
+          <div class="po-md-2">
+         
+            <img  width="50" height="50" src="../../../assets/checklist.png" alt="checklist">
+         </div>
+         <div class="po-md-10">
+          <p>Faça suas avaliações com o uso do Checklist.</p>
+        </div>
+        </po-widget>
+      </div>
+      <div class="po-md-4"></div>
+      <div class="po-md-4"></div>
+    </div>
+    <po-divider p-label="Atividade"></po-divider>
+    <div class="po-row po-mb-3">
+      <!-- Atividade -->
+
+      <div class="po-row">
+        <div class="po-md-4">
+          <po-widget>
+            <div class="po-font-subtitle po-text-center">0</div>
+          </po-widget>
+        </div>
+        <div class="po-md-4">
+          <po-widget>
+            <div class="po-font-subtitle po-text-center">0</div>
+          </po-widget>
+        </div>
+        <div class="po-md-4">
+          <po-widget>
+            <div class="po-font-subtitle po-text-center">0</div>
+          </po-widget>
+        </div>
+      </div>
+    </div>
+
+    <!-- Últimos checklists -->
+    <po-divider p-label="Últimos Checklists Aplicados"></po-divider>
+    <div class="po-row po-mb-3">
+      <div class="po-sm-12">
+        <div class="table-card">
+          <app-table [p-columns]="columns" [p-items]="items" p-hide-columns-manager="true" p-hide-expand></app-table>
+        </div>
+      </div>
+      <div class="po-sm-12"></div>
+      <div class="po-text-center" style="margin-top: 16px">
+        <a href="#">Para ver todos os checklists e ações, acesse os checklists aplicados.</a>
+      </div>
+    </div>
+  </po-container>
+</po-page-default>
+

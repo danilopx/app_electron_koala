@@ -1,0 +1,71 @@
+<div class="setup-page">
+  <div class="setup-card">
+    <div class="setup-header">
+      <h1>Configuração Inicial</h1>
+      <p>Preencha os parâmetros obrigatórios para iniciar o sistema nesta instalação.</p>
+    </div>
+
+    <form class="setup-form" [formGroup]="form" (ngSubmit)="save()">
+      <label class="setup-field setup-checkbox">
+        <input type="checkbox" formControlName="production" />
+        <span>Ambiente de produção</span>
+      </label>
+
+      <label class="setup-field">
+        <span>API Protheus</span>
+        <input type="text" formControlName="apiRoot" placeholder="http://servidor:porta/rest/" />
+      </label>
+
+      <label class="setup-field">
+        <span>Usuário</span>
+        <input type="text" formControlName="admUser" placeholder="admin" />
+      </label>
+
+      <label class="setup-field">
+        <span>Senha</span>
+        <div class="setup-password-field">
+          <input [type]="showPassword ? 'text' : 'password'" formControlName="pass" />
+          <button
+            type="button"
+            class="setup-password-toggle"
+            (click)="togglePasswordVisibility()"
+            [attr.aria-label]="showPassword ? 'Ocultar senha' : 'Mostrar senha'">
+            <svg *ngIf="!showPassword" viewBox="0 0 24 24" aria-hidden="true">
+              <path d="M12 5C6.5 5 2.1 8.3 1 12c1.1 3.7 5.5 7 11 7s9.9-3.3 11-7c-1.1-3.7-5.5-7-11-7zm0 11.2A4.2 4.2 0 1 1 12 7.8a4.2 4.2 0 0 1 0 8.4zm0-6.7A2.5 2.5 0 1 0 12 14.5a2.5 2.5 0 0 0 0-5z"/>
+            </svg>
+            <svg *ngIf="showPassword" viewBox="0 0 24 24" aria-hidden="true">
+              <path d="M2.7 1.3 1.3 2.7l4 4C3.3 8.1 1.8 10 1 12c1.1 3.7 5.5 7 11 7 2.2 0 4.2-.5 5.9-1.4l3.4 3.4 1.4-1.4L2.7 1.3zM12 17.2c-4.1 0-7.5-2.2-8.9-5.2.6-1.3 1.6-2.5 2.8-3.3l1.9 1.9a4.2 4.2 0 0 0 5.6 5.6l2.1 2.1c-1 .3-2.2.5-3.5.5zm0-10.4c4.1 0 7.5 2.2 8.9 5.2-.5 1.2-1.3 2.2-2.4 3l-1.6-1.6a4.2 4.2 0 0 0-5.4-5.4l-1.6-1.6c.7-.3 1.4-.4 2.1-.4zm2.4 5.2c0 1.3-1.1 2.4-2.4 2.4-.3 0-.6-.1-.9-.2l3.1-3.1c.1.3.2.6.2.9zm-4.8 0c0-.8.4-1.6 1.1-2l-2.9-2.9-.1.1"/>
+            </svg>
+          </button>
+        </div>
+      </label>
+
+      <div class="setup-grid">
+        <label class="setup-field">
+          <span>Grupo</span>
+          <input type="text" formControlName="grupo" placeholder="03" />
+        </label>
+
+        <label class="setup-field">
+          <span>Filial</span>
+          <input type="text" formControlName="filial" placeholder="01" />
+        </label>
+      </div>
+
+      <label class="setup-field">
+        <span>Código do Equipamento</span>
+        <input type="text" formControlName="codigoEquipamento" placeholder="Obrigatório" />
+      </label>
+
+      <div class="setup-actions">
+        <po-button
+          [p-label]="saving ? 'Validando Configuração...' : 'Salvar Configuração'"
+          p-kind="primary"
+          [p-loading]="saving"
+          [p-disabled]="saving || form.invalid"
+          (p-click)="save()">
+        </po-button>
+      </div>
+    </form>
+  </div>
+</div>

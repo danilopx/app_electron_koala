@@ -1,0 +1,79 @@
+<div class="producao-page">
+  <po-page-default>
+    <po-container [p-no-border]="true" [p-no-padding]="false" class="po-m-2">
+      <div class="table-card">
+        <app-table
+          [p-items]="notas"
+          [p-hide-columns-manager]="true"
+          p-container="true"
+          [p-selectable]="false"
+          [p-sort]="true"
+          [p-striped]="true"
+          [p-literals]="customLiterals"
+          [p-columns]="columns"
+          [p-max-columns]="9"
+          (p-show-more)="listConferencia(true)"
+        >
+          <div app-table-filters class="conferencia-filters">
+            <div class="filter-field">
+              <label for="conferenciaNf">NF (DOC+SERIE)</label>
+              <input id="conferenciaNf" type="text" [(ngModel)]="filtroNf" placeholder="000123A1" />
+            </div>
+            <div class="filter-field">
+              <label for="conferenciaStart">Data inicial</label>
+              <input id="conferenciaStart" type="date" [(ngModel)]="filtroDataInicio" />
+            </div>
+            <div class="filter-field">
+              <label for="conferenciaEnd">Data final</label>
+              <input id="conferenciaEnd" type="date" [(ngModel)]="filtroDataFim" />
+            </div>
+            <div class="filter-actions">
+              <po-button
+                class="secondary"
+                p-label="Filtrar"
+                p-kind="primary"
+                (p-click)="applyFilters()">
+              </po-button>
+              <po-button
+                class="secondary ml"
+                p-label="Limpar"
+                p-kind="secondary"
+                (p-click)="clearFilters()">
+              </po-button>
+            </div>
+          </div>
+        </app-table>
+      </div>
+    </po-container>
+
+    <po-loading-overlay *ngIf="loadingState" [p-text]="'Aguarde'" [p-screen-lock]="false"></po-loading-overlay>
+  </po-page-default>
+</div>
+
+<po-modal
+  #itensModal
+  class="system-modal"
+  p-title="Itens da Nota"
+  p-click-out="true"
+  [p-primary-action]="{ label: 'Fechar', action: itensModal.close.bind(itensModal) }"
+  [p-size]="'lg'"
+>
+  <div class="conferencia-modal-header" *ngIf="selectedNota">
+    <div class="po-row">
+      <div class="po-md-4"><strong>NF:</strong> {{ selectedNota.nota }}</div>
+      <div class="po-md-4"><strong>Filial:</strong> {{ filialLabel }}</div>
+      <div class="po-md-4"><strong>Cliente:</strong> {{ selectedNota.cliente }}</div>
+    </div>
+    <div class="po-row">
+      <div class="po-md-4"><strong>Conferente:</strong> {{ selectedNota.conferente }}</div>
+      <div class="po-md-4"><strong>Data Conferência:</strong> {{ selectedNota.dataConfFormatada }}</div>
+      <div class="po-md-4"><strong>Status:</strong> Realizado</div>
+    </div>
+    <div class="po-row">
+      <div class="po-md-6"><strong>Hora Conferência:</strong> {{ selectedNota.horaConfFormatada }}</div>
+      <div class="po-md-6"><strong>Nota Conf.:</strong> {{ selectedNota.nota_conf }}</div>
+    </div>
+    <po-divider></po-divider>
+  </div>
+  <po-table [p-items]="selectedItens" [p-columns]="itemColumns" [p-striped]="true"></po-table>
+</po-modal>

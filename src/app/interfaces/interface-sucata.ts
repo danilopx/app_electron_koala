@@ -1,0 +1,36 @@
+export interface Isucata {
+    BC_CC: string;
+    BC_CODDEST: string;
+    BC_CODLAN: string;
+    BC_CODPA: string;
+    BC_DATA: string;
+    BC_DTVALID: string;
+    BC_DTVLDES: string;
+    BC_FILIAL: string;
+    BC_IDENSH6: string;
+    BC_LOCAL: string;
+    BC_LOCALIZ: string;
+    BC_LOCDEST: string;
+    BC_LOCORIG: string;
+    BC_LOTDEST: string;
+    BC_LOTECTL: string;
+    BC_MOTIVO: string;
+    BC_NSEDEST: string;
+    BC_NUMLOTE: string;
+    BC_NUMSEQ: string;
+    BC_NUMSERI: string;
+    BC_OBSERVA: string;
+    BC_OP: string;
+    BC_OPERAC: string;
+    BC_OPERADO: string;
+    BC_PRODUTO: string;
+    BC_QTDDES2: number;
+    BC_QTDDEST: number;
+    BC_QTDPC: number;
+    BC_QTSEGUM: number;
+    BC_QUANT: number;
+    BC_RECURSO: string;
+    BC_SEQSD3: string;
+    BC_TIPO: string;
+    BC_XHORA: string;
+  }

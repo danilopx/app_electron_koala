@@ -1,0 +1,34 @@
+<!-- Tabs da Opção de Informações -->
+<po-loading-overlay [hidden]="loadingModal" [p-screen-lock]="false"></po-loading-overlay>
+<div *ngIf="typeModal === 'info'">
+
+  <po-tabs>
+    <po-tab #dadosMaquinaTab
+      p-label="Dados da Máquina (Em Progresso)"
+      [p-active]="true"
+      (p-click)="debugTab($event)"
+    >
+
+      <po-container>
+
+        <!-- Apontamentos de Produção -->
+
+      </po-container>
+    </po-tab>
+
+    <!-- Correção do Warning "Lazy Loading": Carregar Imagem só sob demanda. -->
+    <po-tab
+      p-label="Foto do Equipamento"
+      (p-click)="debugTab($event);
+      abaFotoEquipamentoClicada = true"
+    >
+      <po-image
+        *ngIf="abaFotoEquipamentoClicada"
+        [p-src]="maqimg"
+        p-alt="Foto do Equipamento"
+        [p-height]="500">
+      </po-image>
+    </po-tab>
+
+  </po-tabs>
+</div>

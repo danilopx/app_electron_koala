@@ -1,0 +1,118 @@
+:host ::ng-deep .stepper-readonly,
+:host ::ng-deep .stepper-readonly * {
+  pointer-events: none !important;
+}
+
+.stepper-lock {
+  position: relative;
+  display: block;
+  width: 100%;
+}
+
+.stepper-lock-overlay {
+  position: absolute;
+  inset: 0;
+  z-index: 3;
+  pointer-events: auto;
+  background: transparent;
+}
+
+:host ::ng-deep .stepper-lock .po-stepper {
+  position: relative;
+  z-index: 1;
+}
+
+:host ::ng-deep .stepper-lock .po-stepper-step,
+:host ::ng-deep .stepper-lock .po-stepper-step * {
+  pointer-events: none !important;
+}
+
+:host ::ng-deep .stepper-readonly .po-stepper-circle-active {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: transparent;
+  border: none;
+}
+
+:host ::ng-deep .stepper-readonly .po-stepper-circle-active::after {
+  content: "\2713";
+  font-size: 12px;
+  font-weight: 700;
+  color: #2563eb;
+}
+
+:host ::ng-deep .stepper-readonly .po-stepper-circle {
+  position: relative;
+}
+
+:host ::ng-deep .solicitacao-details .po-widget {
+  border-radius: 10px;
+}
+
+:host ::ng-deep .solicitacao-details .po-widget-header,
+:host ::ng-deep .solicitacao-details .po-widget-body {
+  padding: 8px 12px;
+}
+
+:host ::ng-deep .solicitacao-details .po-widget-body {
+  padding: 0;
+}
+
+.details-header {
+  align-items: center;
+  margin-bottom: 2px;
+}
+
+.details-title {
+  font-size: 14px;
+  font-weight: 700;
+  line-height: 1.1;
+  color: #111827;
+}
+
+.details-actions {
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+}
+
+.details-stepper {
+  margin: 0 0 4px;
+}
+
+:host ::ng-deep .details-stepper .po-stepper-label {
+  font-size: 11px;
+}
+
+:host ::ng-deep .details-stepper .po-stepper-step,
+:host ::ng-deep .details-stepper .po-stepper-content {
+  min-height: 34px;
+}
+
+.details-grid {
+  row-gap: 0;
+}
+
+:host ::ng-deep .details-grid .po-info {
+  margin-bottom: 2px;
+}
+
+:host ::ng-deep .details-grid .po-info-label {
+  font-size: 11px;
+  font-weight: 600;
+  color: #475569;
+}
+
+:host ::ng-deep .details-grid .po-info-value {
+  font-size: 12px;
+  line-height: 1.15;
+  color: #0f172a;
+}
+
+:host ::ng-deep .info-text-wrap .po-info-value {
+  white-space: pre-wrap;
+  word-break: break-word;
+}

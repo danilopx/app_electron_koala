@@ -1,0 +1,242 @@
+<div class="producao-page automatico-page">
+  <po-page-default>
+    <po-container [p-no-border]="true" [p-no-padding]="true" class="po-m-2">
+      <section class="automatico-shell">
+        <div class="automatico-header">
+          <div>
+            <h2>Apontamento de Produção Automático</h2>
+          </div>
+          <div class="automatico-header-actions">
+            <button type="button" class="action-button secondary" (click)="alternarTesteSerial()">
+              {{ serialLendo && serialTesteManual ? 'Parar teste porta' : 'Testar porta' }}
+            </button>
+            <button type="button" class="action-button dark" (click)="abrirModalOp()">Consultar OP</button>
+          </div>
+        </div>
+
+        <section *ngIf="screenMessage" class="automatico-message" [class.is-error]="screenMessageType === 'error'">
+          <strong>{{ screenMessage }}</strong>
+        </section>
+
+        <ng-container *ngIf="ordem; else emptyState">
+        <div class="automatico-top-grid">
+          <div class="info-stack">
+            <div class="info-row">
+              <span class="info-label">Ordem:</span>
+              <strong>{{ ordem.numero }}</strong>
+            </div>
+            <div class="info-row">
+              <span class="info-label">Produto:</span>
+              <strong>{{ ordem.produto }}</strong>
+            </div>
+            <div class="info-row">
+              <span class="info-label">Quantidade:</span>
+              <strong>{{ ordem.quantidade }}</strong>
+            </div>
+          </div>
+
+          <div class="info-stack">
+            <div class="info-row">
+              <span class="info-label">Data:</span>
+              <strong>{{ ordem.data }}</strong>
+            </div>
+            <div class="info-row">
+              <span class="info-label">Descrição:</span>
+              <strong>{{ ordem.descricao }}</strong>
+            </div>
+            <div class="info-row">
+              <span class="info-label">Mult. Caixa:</span>
+              <strong>{{ ordem.multiploCaixa }}</strong>
+            </div>
+          </div>
+
+          <div class="info-stack">
+            <div class="info-row">
+              <span class="info-label">AMZ:</span>
+              <strong>{{ ordem.armazem }}</strong>
+            </div>
+            <div class="info-row">
+              <span class="info-label">UM:</span>
+              <strong>{{ ordem.unidadeMedida }}</strong>
+            </div>
+            <div class="info-row">
+              <span class="info-label">Pacote:</span>
+              <strong>{{ ordem.pacote }}</strong>
+            </div>
+          </div>
+        </div>
+
+        <section class="serial-monitor">
+          <div class="serial-monitor-item">
+            <span class="serial-label">Ciclo</span>
+            <strong>{{ ordem.quantidadeProduzidaAtual || 0 }}</strong>
+          </div>
+          <div class="serial-monitor-item">
+            <span class="serial-label">Tempo de produção</span>
+            <strong>{{ tempoProducaoLabel }}</strong>
+          </div>
+          <div class="serial-monitor-item">
+            <span class="serial-label">Tempo médio para finalizar</span>
+            <strong>{{ tempoPrevistoLabel }}</strong>
+          </div>
+          <div class="serial-monitor-item">
+            <span class="serial-label">Ciclo médio</span>
+            <strong>{{ cicloMedioLabel }}</strong>
+          </div>
+        </section>
+
+        <div class="automatico-body">
+          <section class="history-card">
+            <div class="status-line">
+              <span class="info-label">Situação:</span>
+              <strong class="status-highlight">{{ ordem.situacao }}</strong>
+            </div>
+
+            <div class="history-table-wrap">
+              <table class="history-table">
+                <thead>
+                  <tr>
+                    <th>Quantidade</th>
+                    <th>Data</th>
+                    <th>Caixa</th>
+                    <th>Usuário</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr *ngFor="let item of historico">
+                    <td>{{ item.quantidade }}</td>
+                    <td>{{ item.dataHora }}</td>
+                    <td>{{ item.caixa }}</td>
+                    <td>{{ item.usuario }}</td>
+                  </tr>
+                  <tr *ngIf="!historico.length">
+                    <td colspan="4">Nenhum historico encontrado para a OP.</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </section>
+
+          <section class="cycle-panel">
+            <div class="cycle-toolbar">
+              <button type="button" class="action-button primary" [disabled]="acertoDesabilitado" (click)="registrarAcerto()">Acerto</button>
+            </div>
+
+            <div class="cycle-number">{{ ordem.quantidadeProduzidaAtual }}</div>
+
+            <button
+              *ngIf="exibirBotaoApontamentoManual"
+              type="button"
+              class="action-button dark action-button-full"
+              [disabled]="apontamentoManualDesabilitado"
+              (click)="acionarApontamentoManual()">
+              Apontar
+            </button>
+          </section>
+        </div>
+
+        <div class="automatico-footer">
+          <div class="footer-card">
+            <span>Produção:</span>
+            <strong>{{ ordem.producao }}</strong>
+          </div>
+          <div class="footer-card">
+            <span>Saldo:</span>
+            <strong>{{ ordem.saldo }}</strong>
+          </div>
+          <div class="footer-card">
+            <span>N° Etiqueta:</span>
+            <strong>{{ ordem.etiqueta }}</strong>
+          </div>
+        </div>
+        </ng-container>
+
+        <ng-template #emptyState>
+          <div class="automatico-empty">
+            <strong *ngIf="carregandoOrdem">Carregando dados da OP...</strong>
+            <strong *ngIf="!carregandoOrdem">Informe uma OP para carregar a rotina automática ou use Testar porta para validar a leitura.</strong>
+          </div>
+        </ng-template>
+      </section>
+
+      <po-modal
+        #opModal
+        class="system-modal"
+        p-title="Informar OP"
+        p-click-out="false"
+        p-size="sm">
+        <div class="automatico-modal-body">
+          <div class="automatico-modal-copy">
+            <strong>Informe a OP completa com 11 digitos.</strong>
+            <span>Digite apenas numeros. A rotina so aceita a OP inteira.</span>
+          </div>
+
+          <div class="automatico-modal-field">
+            <label class="automatico-modal-label" for="numeroOpInformado">Numero da OP</label>
+            <input
+              id="numeroOpInformado"
+              type="text"
+              [(ngModel)]="numeroOpInformado"
+              maxlength="11"
+              inputmode="numeric"
+              [disabled]="carregandoOrdem"
+              (input)="onNumeroOpInformadoChange($any($event.target).value)"
+              (keydown.enter)="consultarOp()"
+              placeholder="Ex.: 02386001001" />
+            <span class="automatico-modal-hint">11 digitos obrigatorios.</span>
+          </div>
+        </div>
+        <po-modal-footer>
+          <po-button
+            p-label="Consultar"
+            p-kind="primary"
+            [p-loading]="carregandoOrdem"
+            [p-disabled]="carregandoOrdem || numeroOpInformado.length !== 11"
+            (p-click)="consultarOp()"></po-button>
+        </po-modal-footer>
+      </po-modal>
+
+      <po-modal
+        #acertoModal
+        class="system-modal"
+        p-title="Acerto de Contagem"
+        p-click-out="false"
+        p-size="sm"
+        (p-close)="aoFecharModalAcerto()">
+        <div class="automatico-modal-body">
+          <div class="automatico-modal-copy">
+            <strong>Informe a quantidade correta do ciclo atual.</strong>
+            <span *ngIf="ordem?.multiploCaixa">O valor nao pode ser maior que o multiplo da caixa.</span>
+            <span *ngIf="!ordem?.multiploCaixa">O valor nao pode ser maior que a quantidade da OP ou o saldo restante.</span>
+          </div>
+
+          <div class="automatico-modal-field">
+            <label class="automatico-modal-label" for="acertoQuantidade">Quantidade</label>
+            <input
+              id="acertoQuantidade"
+              type="number"
+              min="0"
+              step="1"
+              [(ngModel)]="acertoQuantidade"
+              [disabled]="salvandoAcerto"
+              (keydown.enter)="salvarAcerto()"
+              placeholder="0" />
+          </div>
+        </div>
+        <po-modal-footer>
+          <po-button
+            p-label="Cancelar"
+            p-kind="secondary"
+            [p-disabled]="salvandoAcerto"
+            (p-click)="fecharModalAcerto()"></po-button>
+          <po-button
+            p-label="Salvar Acerto"
+            p-kind="primary"
+            [p-loading]="salvandoAcerto"
+            [p-disabled]="salvandoAcerto"
+            (p-click)="salvarAcerto()"></po-button>
+        </po-modal-footer>
+      </po-modal>
+    </po-container>
+  </po-page-default>
+</div>

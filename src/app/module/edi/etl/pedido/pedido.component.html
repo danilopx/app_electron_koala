@@ -1,0 +1,181 @@
+<div class="pedido-page">
+  <po-loading-overlay *ngIf="loading"></po-loading-overlay>
+  
+  
+
+  <div class="alert error" *ngIf="error">{{ error }}</div>
+
+  <div id="pedido-detalhe" class="detail-card table-card" *ngIf="pedidoDetalhe">
+    <div class="header">
+    <div>
+      <h1>N° Pedido Fornecedor: {{ displayOrderNumber() }}</h1>
+      <p class="subtitle">N° Pedido Cliente: {{ pedidoDetalhe.pedidoCliente || 'N/A' }}</p>
+    </div>
+    <div class="actions-header">
+      
+      <po-button
+        class="primary"
+        p-label="Gerar PDF"
+        p-kind="primary"
+        p-type="button"
+        (p-click)="generatePdf()"
+        [p-disabled]="!pedidoDetalhe">
+      </po-button>
+    </div>
+  </div>
+    <section class="meta">
+      <div class="box">
+        <span class="label">Fornecedor</span>
+        <strong>{{ displayFilial() }}</strong>
+      </div>
+
+      <div class="box">
+        <span class="label">Cliente</span>
+        <strong>{{ pedidoDetalhe.cliente || '-' }}</strong>
+      </div>
+
+      <div class="box">
+        <span class="label">Data Emissão</span>
+        <strong>{{ formatDate(pedidoDetalhe.emissao) }}</strong>
+      </div>
+    
+      <div class="box">
+        <span class="label">Status</span>
+        <po-tag [p-value]="displayStatus()" [ngClass]="statusTagClass()"></po-tag>
+      </div>
+    </section>
+
+    <section class="notes" *ngIf="notaDetalhes.length">
+      <h2>Notas Fiscais</h2>
+      <div class="notes-list">
+        <button
+          type="button"
+          class="note-pill"
+          *ngFor="let nota of notaDetalhes"
+          (click)="openNota(nota)">
+          {{ nota.doc }} <span *ngIf="nota.serie">/ {{ nota.serie }}</span>
+        </button>
+      </div>
+    </section>
+
+    <section class="observacao" *ngIf="pedidoDetalhe.observacao">
+      <h2>Observacao</h2>
+      <p>{{ pedidoDetalhe.observacao }}</p>
+    </section>
+
+    <section class="items">
+      <h2>Itens</h2>
+      <div class="table-wrapper">
+        <table class="orders-table">
+          <thead>
+                <tr>
+                  <th>Codigo produto</th>
+                  <th>Codigo cliente</th>
+                  <th>Descricao</th>
+                  <th>UM</th>
+                  <th>Qtd</th>
+                  <th>Qtd entregue</th>
+                  <th>Data Entrega</th>
+                  <th>Data fatur.</th>
+                  <th>TES</th>
+                  <th>Oper.</th>
+                  <th>CFOP</th>
+                  <th>Ped. Cli.</th>
+                  <th>Item Ped. Cli.</th>
+                  <th>Valor unitario</th>
+                  <th>Total</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr *ngFor="let item of pedidoDetalhe.items">
+                  <td>{{ item.codigoProduto }}</td>
+                  <td>{{ item.codigoCliente }}</td>
+                  <td>{{ item.descricaoItem }}</td>
+                  <td>{{ item.unidade }}</td>
+                  <td>{{ item.quantidade }}</td>
+                  <td>{{ item.quantidadeEntregue }}</td>
+                  <td>{{ formatApiDate(item.entregueFlag) }}</td>
+                  <td>{{ formatApiDate(item.dataFaturamento) }}</td>
+                  <td>{{ item.tes || '-' }}</td>
+                  <td>{{ item.operacao || '-' }}</td>
+                  <td>{{ item.cfop || '-' }}</td>
+                  <td>{{ item.numpcom || '-' }}</td>
+                  <td>{{ item.itemcp || '-' }}</td>
+                  <td>R$ {{ item.precoUnitario | number: '1.2-2' }}</td>
+                  <td>R$ {{ itemTotal(item) | number: '1.2-2' }}</td>
+                </tr>
+              </tbody>
+              <tfoot>
+                <tr>
+                  <td colspan="14">Total do pedido</td>
+                  <td>R$ {{ orderTotal | number: '1.2-2' }}</td>
+                </tr>
+              </tfoot>
+            </table>
+      </div>
+    </section>
+  </div>
+
+  <div class="empty-state" *ngIf="!loading && !error && !pedidoDetalhe">
+    Nenhum detalhe encontrado para este pedido.
+  </div>
+
+  <po-modal
+    #notaModal
+    class="system-modal"
+    p-title="Nota fiscal"
+    p-click-out="true"
+    p-size="xl"
+    p-primary-label="Fechar"
+    (p-primary-action)="notaModal.close()">
+    <div class="nota-modal" *ngIf="selectedNota">
+      <div class="nota-grid">
+        <div class="box">
+          <span class="label">Nota</span>
+          <strong>{{ selectedNota.doc }} <span *ngIf="selectedNota.serie">/ {{ selectedNota.serie }}</span></strong>
+        </div>
+        <div class="box">
+          <span class="label">Emissão</span>
+          <strong>{{ formatDate(selectedNota.emissao) }}</strong>
+        </div>
+        <div class="box">
+          <span class="label">Cliente</span>
+          <strong>{{ selectedNota.cliente || '-' }}</strong>
+        </div>
+        <div class="box">
+          <span class="label">Loja</span>
+          <strong>{{ selectedNota.loja || '-' }}</strong>
+        </div>
+      </div>
+
+      <div class="nota-chave" *ngIf="selectedNota.chave">
+        <span class="label">Chave</span>
+        <span class="nota-chave-value">{{ selectedNota.chave }}</span>
+      </div>
+
+      <div class="nota-items" *ngIf="selectedNota.items.length">
+        <h3>Itens da nota</h3>
+        <div class="table-wrapper">
+          <table class="orders-table">
+            <thead>
+              <tr>
+                <th>Item ped.</th>
+                <th>Produto</th>
+                <th>Quantidade</th>
+                <th>Total</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr *ngFor="let item of selectedNota.items">
+                <td>{{ item.itemPedido || '-' }}</td>
+                <td>{{ item.produto || '-' }}</td>
+                <td>{{ item.quantidade }}</td>
+                <td>R$ {{ item.total | number: '1.2-2' }}</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </po-modal>
+</div>

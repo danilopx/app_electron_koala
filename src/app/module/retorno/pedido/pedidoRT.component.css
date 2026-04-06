@@ -1,0 +1,161 @@
+:host {
+  display: block;
+  min-height: 100vh;
+  color: var(--color-text);
+}
+
+.pedido-page {
+  display: grid;
+  gap: 18px;
+  padding: 6px 20px 28px;
+}
+
+.breadcrumb {
+  font-size: 12px;
+  color: var(--color-muted);
+}
+
+.header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 12px;
+}
+
+.header h1 {
+  margin: 0;
+  font-size: 24px;
+  font-weight: 700;
+  color: var(--color-text);
+}
+
+.header-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  justify-content: flex-end;
+}
+
+.form-card {
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: 12px;
+  padding: 10px;
+  box-shadow: 0 2px 6px rgba(17, 24, 39, 0.06);
+}
+
+.items-card {
+  margin-top: 5px;
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  padding: 10px;
+  box-shadow: var(--shadow-soft);
+}
+
+.items-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 12px;
+}
+
+.items-header h2 {
+  margin: 0;
+  font-size: 18px;
+  color: var(--color-text);
+}
+
+.list-wrapper {
+  border: 1px solid var(--color-border);
+  border-radius: 10px;
+  padding: 10px;
+  background: var(--color-surface-muted);
+}
+
+::ng-deep .po-list-view-container,
+::ng-deep .po-list-view-container-no-data {
+  padding: 6px !important;
+  position: relative !important;
+}
+
+::ng-deep .po-list-view-title-no-link {
+  display: table-cell;
+  padding-left: 2px;
+}
+
+::ng-deep .po-list-view-content {
+  margin-top: 6px;
+}
+
+::ng-deep .po-list-view-item {
+  align-items: center;
+}
+
+::ng-deep .po-list-view-detail {
+  flex: 1 1 auto;
+}
+
+::ng-deep .po-list-view-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-left: auto;
+}
+
+::ng-deep .po-list-view-actions .po-button {
+  min-width: 36px;
+  height: 32px;
+  padding: 0 8px;
+  border-radius: 8px;
+}
+
+::ng-deep .po-list-view-actions .po-button .po-icon {
+  font-size: 14px;
+}
+
+:host ::ng-deep .pedido-modal .po-modal {
+  border-radius: 16px;
+  overflow: hidden;
+}
+
+:host ::ng-deep .pedido-modal .po-modal-header {
+  background: #f9fafb;
+  border-bottom: 1px solid var(--color-border);
+}
+
+:host ::ng-deep .pedido-modal .po-modal-title {
+  font-weight: 700;
+  color: var(--color-text);
+}
+
+:host ::ng-deep .pedido-modal .po-modal-body {
+  padding: 16px 18px;
+  background: var(--color-surface);
+}
+
+:host ::ng-deep .pedido-modal .po-modal-footer {
+  border-top: 1px solid var(--color-border);
+  padding: 12px 16px;
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+}
+
+.modal-body {
+  display: grid;
+  gap: 16px;
+}
+
+.log-content {
+  border: 1px solid var(--color-border);
+  border-radius: 12px;
+  padding: 12px 14px;
+  background: var(--color-surface-muted);
+  color: var(--color-text);
+  max-height: 60vh;
+  overflow: auto;
+  font-size: 13px;
+  line-height: 1.5;
+}

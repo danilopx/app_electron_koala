@@ -1,0 +1,433 @@
+<po-page-default p-title="Equipamentos">
+  <!--<po-container [p-no-border]="true" [p-no-padding]="true"  class="po-m-5">
+      <label for="searchProduct">Procurar: </label>
+
+      <input type="text" [(ngModel)]="filtro" placeholder="Filtrar" />
+
+    </po-container> -->
+
+  <po-loading-overlay *ngIf="loagingPage" [p-text]="'Aguarde'"></po-loading-overlay>
+
+  <po-container [p-no-border]="true" [p-no-padding]="false">
+   <!-- <po-tabs>
+      <po-tab
+        *ngFor="let filial of speakers"
+        p-label=""
+        [p-active]="true"
+        (p-click)="setSetor(filial.mp_filial, filial.mp_grupo)"
+      >-->
+        <po-tabs>
+          <po-tab p-label="Equipamentos" [p-active]="true">
+            <div class="po-row">
+              <div class="po-md-3">
+                <div class="po-md-12">
+                  <po-container [p-no-border]="true" [p-no-padding]="true" class="po-m-3">
+                    <label for="searchProduct">
+                      <font class="po-font-text-bold">Procurar: </font>
+                    </label>
+                    <input type="text" [(ngModel)]="filtro" placeholder="Filtrar" />
+                  </po-container>
+                </div>
+              </div>
+            </div>
+            <ng-container *ngIf="equipamentos && equipamentos.length > 0; else noEquipamentos">
+              <ng-container *ngFor="let item of equipamentos | filter: filtro; let i = index">
+                <po-divider *ngIf="equipamentos[i - 1]?.equipamento_setor !== item.equipamento_setor"></po-divider>
+
+                <po-info
+                  [p-orientation]="orientation"
+                  *ngIf="equipamentos[i - 1]?.equipamento_setor !== item.equipamento_setor"
+                  p-label="Setor"
+                  p-value="{{ item.equipamento_setor }}"
+                >
+                </po-info>
+
+                <po-widget
+                  [p-title]="item.equipamento_id + '-' + item.equipamento_nome.substring(0, 30)"
+                  class="po-lg-3 po-mt-2 po-mb-2"
+                  [p-height]="220"
+                  [p-primary-label]="getValidacoesVisuais(item).primaryLabel"
+                  [p-secondary-label]=""
+                  (p-primary-action)="abrirModalEquipamento(item, true)"
+                  (p-secondary-action)="true"
+                >
+                  <div class="po-md-7">
+                    <!--<div class="po-text-left">
+                <font class="po-font-text-bold">Filial: {{ item.equipamento_filial }}</font>
+              </div>-->
+                    <div class="po-text-left">
+                      <font class="po-font-text-bold">Setor: {{ item.equipamento_setor }}</font>
+                    </div>
+                    <!--  <div class="po-text-left">
+                <font class="po-font-text-bold">Status: {{ findStep(item.equipamento_ss_status) }}</font>
+              </div>-->
+                  </div>
+                  <div class="po-md-5">
+                    <po-image
+                      class="po-container-no-padding"
+                      [p-src]="item.equipameno_ss_imagem"
+                      p-alt="Equipamento"
+                      [p-height]="95"
+                    >
+                    </po-image>
+                  </div>
+                  <!--  <po-tag [p-value]="getValidacoesVisuais(item).tagValue" [p-type]="getValidacoesVisuais(item).tagType"
+              [p-icon]="true"></po-tag>-->
+                </po-widget>
+              </ng-container>
+            </ng-container>
+          </po-tab>
+
+          <po-tab p-label="Equipamentos com Solicitações Abertas">
+            <div class="po-row">
+              <div class="po-md-3">
+                <div class="po-md-12">
+                  <po-container [p-no-border]="true" [p-no-padding]="true" class="po-m-3">
+                    <label for="searchProduct">
+                      <font class="po-font-text-bold">Procurar: </font>
+                    </label>
+                    <input type="text" [(ngModel)]="filtro" placeholder="Filtrar" />
+                  </po-container>
+                </div>
+              </div>
+            </div>
+
+            <ng-container *ngIf="equipamentos_aberta && equipamentos_aberta.length > 0; else noEquipamentos">
+                <ng-container *ngFor="let item of equipamentos_aberta | filter: filtro; let i = index">
+    
+                <po-widget
+                  [p-title]="item.equipamento_id + '-' + item.equipamento_nome.substring(0, 30)"
+                  class="po-lg-3 po-mt-2 po-mb-2"
+                  [p-height]="220"
+                  [p-primary-label]="getValidacoesVisuais(item).primaryLabel"
+                  [p-secondary-label]=""
+                  (p-primary-action)="abrirModalEquipamento(item, true)"
+                  (p-secondary-action)="true"
+                >
+                  <div class="po-md-7">
+                    <div class="po-text-left">
+                      <font class="po-font-text-bold">N° Solicitação: {{ item.equipamento_ss_numero }}</font>
+                    </div>
+                    <div class="po-text-left">
+                      <font class="po-font-text-bold">Setor: {{ item.equipamento_setor }}</font>
+                    </div>
+                    <!-- <div class="po-text-left">
+                  <font class="po-font-text-bold">Status: {{ findStep(item.equipamento_ss_status) }}</font>
+                </div> -->
+                  </div>
+                  <div class="po-md-5">
+                    <po-image
+                      class="po-container-no-padding"
+                      [p-src]="item.equipameno_ss_imagem"
+                      p-alt="Equipamento"
+                      [p-height]="95"
+                    >
+                    </po-image>
+                  </div>
+                  <!--  <po-tag [p-value]="getValidacoesVisuais(item).tagValue" [p-type]="getValidacoesVisuais(item).tagType"
+                [p-icon]="true"></po-tag>-->
+                </po-widget>
+              </ng-container>
+            </ng-container>
+          </po-tab>
+        </po-tabs>
+        <ng-template #noEquipamentos>
+          <div class="po-text-center po-mt-4">
+            <font class="po-font-text-bold">Nenhum equipamento.</font>
+          </div>
+        </ng-template>
+
+        <!--////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////-->
+     <!--</po-tab>
+    </po-tabs>--> 
+  </po-container>
+
+  <ng-container *ngIf="modalAbrirSolicitacaoVisivel">
+    <!-- Para configurar o "Primary Action", precisa implementar um objeto do tipo PoModalAction no Componente. -->
+    <po-modal
+      #modalAbrirSolicitacao
+      [p-title]="'Solicitação de Manutenção - ' + equipamentoSelecionado.equipamento_nome"
+      [p-click-out]="true"
+      [p-hide-close]="true"
+      [p-primary-action]="fecharJanela"
+      [p-secondary-action]="abrirSolicitacao"
+      [p-size]="'auto'"
+      (p-close)="resetarFormularioFilho()"
+    >
+      <po-loading-overlay [p-screen-lock]="true" *ngIf="loadingForm"></po-loading-overlay>
+
+      <app-form-manutencao
+        #formAbrirSolicitacao
+        (formularioValido)="abrirFormularioValido($event)"
+      ></app-form-manutencao>
+    </po-modal>
+  </ng-container>
+
+  <po-modal
+    #modalReabrir
+    [p-title]="'Solicitação de Manutenção 111 - ' + equipamentoSelecionado.equipamento_nome"
+    [p-click-out]="true"
+    [p-hide-close]="true"
+    [p-primary-action]="fecharJanela"
+    [p-secondary-action]="abrirSolicitacao"
+    [p-size]="'auto'"
+    (p-close)="resetarFormularioFilho()"
+  >
+    <po-loading-overlay [p-screen-lock]="true" *ngIf="loadingForm"></po-loading-overlay>
+
+    <app-form-manutencao
+      #formReabrirSolicitacao
+      (formularioValido)="reabrirFormularioValido($event)"
+    ></app-form-manutencao>
+  </po-modal>
+
+  <ng-container *ngIf="modalSolicitacoesAbertasVisivel">
+    <!-- Modal que vai abrir se o equipamento tem solicitações abertas. -->
+    <po-modal
+      #modalSolicitacoesAbertas
+      [p-title]="equipamentoSelecionado.equipamento_id + ' - ' + equipamentoSelecionado.equipamento_nome"
+      [p-click-out]="true"
+      [p-hide-close]="true"
+      [p-primary-action]="okModalSolicitacoes"
+      [p-size]="'auto'"
+    >
+      <div class="po-row">
+        <div class="po-md-12">
+         <po-button
+            class="po-sm-3 po-m-1 po-pull-right"
+            p-icon="po-icon po-icon-lock-off"
+            *ngIf="
+              solicitacoes[0].solicitacao_step === '1' ||
+              solicitacoes[0].solicitacao_step === '2' ||
+              solicitacoes[0].solicitacao_step === '3' ||
+              solicitacoes[0].solicitacao_step === '4' ||
+              solicitacoes[0].solicitacao_step === '5' ||
+              solicitacoes[0].solicitacao_step === '6'
+            "
+            p-label="Relatar Novo Problema"
+            (p-click)="abrirModalEquipamento(equipamentoSelecionado, false)"
+          >
+          </po-button>
+
+          <po-button
+            class="po-sm-3 po-m-1 po-pull-right"
+            p-icon="po-icon po-icon-star"
+            *ngIf="solicitacoes[0].solicitacao_step === '5'"
+            p-label="Avaliação Setor"
+            (p-click)="
+              abrirModalAvaliacao(solicitacoes[0].solicitacao_filial ?? '', solicitacoes[0].solicitacao_id ?? '')
+            "
+          >
+          </po-button>
+        </div>
+      </div>
+
+      <po-list-view p-property-title="name" [p-items]="solicitacoesEquipamento">
+        <ng-template p-list-view-content-template let-solicitacoesEquipamento let-code="index">
+          <div class="po-row">
+            <po-stepper [p-sequential]="true">
+              <po-step p-label="Solicitação Aberta"></po-step>
+              <po-step p-label="Enviado ao Manutentor"></po-step>
+              <po-step p-label="Início do Atendimento"></po-step>
+              <po-step p-label="Finalização do Atendimento"></po-step>
+              <po-step p-label="Validação Manutenção"></po-step>
+              <po-step p-label="Validação Setor"></po-step>
+              <po-step p-label="Ordem de Serviço Finalizado"></po-step>
+            </po-stepper>
+          </div>
+          <po-divider></po-divider>
+
+          <po-info
+            *ngIf="solicitacoesEquipamento.ordem_id"
+            class="po-md-3 align-info"
+            p-label="S.S. | Ordem de Serviço:"
+            [p-value]="solicitacoesEquipamento.solicitacao_id + ' | ' + solicitacoesEquipamento.ordem_id"
+          >
+          </po-info>
+
+          <po-info
+            *ngIf="!solicitacoesEquipamento.ordem_id"
+            class="po-md-3 align-info"
+            p-label="Solicitação:"
+            [p-value]="solicitacoesEquipamento.solicitacao_id"
+          >
+          </po-info>
+
+          <po-info class="po-md-3 align-info" p-label="Empresa:" [p-value]="solicitacoesEquipamento.solicitacao_filial">
+          </po-info>
+
+          <po-info
+            class="po-md-3 align-info"
+            p-label="Setor:"
+            [p-value]="solicitacoesEquipamento.ordem_codsetor + '-' + solicitacoesEquipamento.setor_nome"
+          >
+          </po-info>
+
+          <po-info
+            class="po-md-3 align-info"
+            p-label="Prioridade:"
+            [p-value]="solicitacoesEquipamento.solicitacao_prioridade2.toUpperCase()"
+          ></po-info>
+
+          <po-info
+            class="po-md-4 align-info"
+            p-label="Solicitante:"
+            [p-value]="solicitacoesEquipamento.solicitacao_usuario?.toUpperCase()"
+          ></po-info>
+
+          <po-info
+            class="po-md-4 align-info"
+            p-label="Executor:"
+            [p-value]="
+              solicitacoesEquipamento.executor_matricula + '-' + solicitacoesEquipamento.executor_nome?.toUpperCase()
+            "
+          ></po-info>
+          <po-info
+            class="po-md-4 align-info"
+            p-label="Tipo"
+            [p-value]="solicitacoesEquipamento.ordem_cod_servico"
+          ></po-info>
+
+          <po-info
+            class="po-md-4 align-info"
+            p-label="Data Abertura:"
+            *ngIf="solicitacoesEquipamento.solicitacao_databer.trim() !== ''; else noData"
+            [p-value]="
+              formatarDataBrasileira(solicitacoesEquipamento.solicitacao_databer) +
+              ' ' +
+              solicitacoesEquipamento.solicitacao_horaber
+            "
+          >
+          </po-info>
+
+          <ng-template #noData>
+            <po-info
+              class="po-md-4 align-info"
+              p-label="Data Abertura:"
+              [p-value]="
+                formatarDataBrasileira(solicitacoesEquipamento.ordem_data) +
+                ' ' +
+                solicitacoesEquipamento.solicitacao_horaber
+              "
+            >
+            </po-info>
+          </ng-template>
+
+          <po-info
+            class="po-md-4 align-info"
+            p-label="Data Inicio da Manutenção:"
+            [p-value]="
+              formatarDataBrasileira(solicitacoesEquipamento.ordem_data_real_inicio_manutencao) +
+              ' ' +
+              solicitacoesEquipamento.ordem_hora_real_inicio_manutencao
+            "
+          ></po-info>
+
+          <po-info
+            class="po-md-4 align-info"
+            p-label="Data Final da Manutenção:"
+            [p-value]="
+              formatarDataBrasileira(solicitacoesEquipamento.ordem_data_real_fim_manutencao) +
+              ' ' +
+              solicitacoesEquipamento.ordem_hora_real_fim_manutencao
+            "
+          ></po-info>
+
+          <po-info
+            class="po-md-12 align-info po-mb-2"
+            p-label="Descrição do Incidente:"
+            [p-value]="solicitacoesEquipamento.solicitacao_descricao"
+          ></po-info>
+          <po-info
+            class="po-md-4 align-info po-mb-2"
+            p-label="Descrição do Problema:"
+            [p-value]="solicitacoesEquipamento.ordem_problema"
+          ></po-info>
+          <po-info
+            class="po-md-4 align-info po-mb-2"
+            p-label="Descrição da Causa:"
+            [p-value]="solicitacoesEquipamento.ordem_causa"
+          ></po-info>
+          <po-info
+            class="po-md-4 align-info po-mb-2"
+            p-label="Descrição da Solução:"
+            [p-value]="solicitacoesEquipamento.ordem_solucao"
+          ></po-info>
+
+          <po-info
+            class="po-md-4 align-info"
+            p-label="Aprovação Manuenção:"
+            [p-value]="
+              solicitacoesEquipamento.ordem_avaliacao === ''
+                ? ''
+                : solicitacoesEquipamento.ordem_avaliacao === 'A'
+                  ? 'Aprovado'
+                  : 'Reprovado'
+            "
+          ></po-info>
+
+          <po-info
+            class="po-md-4 align-info"
+            p-label="Qualidade e resolução do problema?"
+            [p-value]="getStatusLabel(solicitacoesEquipamento.solicitacao_qualidade)"
+          ></po-info>
+
+          <po-info
+            class="po-md-4 align-info"
+            p-label="Satisfação e prazo de atendimento?"
+            [p-value]="getStatusLabel(solicitacoesEquipamento.solicitacao_satisfacao)"
+          ></po-info>
+        </ng-template>
+      </po-list-view>
+    </po-modal>
+
+    <po-modal
+      #modalAvaliacao
+      p-title="Avaliar Ordem de Serviço"
+      [p-primary-action]="{ action: salvarAvaliacao.bind(this), label: 'Salvar' }"
+      [p-secondary-action]="{ action: cancelarAvaliacao.bind(this), label: 'Cancelar' }"
+    >
+      <div class="po-row">
+        <div class="po-md-12">
+          <po-radio-group
+            p-label="Qualidade e resolução do problema."
+            name="qualidadeServico"
+            [(ngModel)]="qualidadeServico"
+            [p-options]="avaliacaoOptions"
+            [p-required]="true"
+          >
+          </po-radio-group>
+        </div>
+
+        <div class="po-md-12">
+          <po-radio-group
+            p-label="Satisfação e prazo de atendimento"
+            name="satisfacaoAtendimento"
+            [(ngModel)]="satisfacaoAtendimento"
+            [p-options]="avaliacaoOptions2"
+            [p-required]="true"
+          >
+          </po-radio-group>
+        </div>
+      </div>
+
+      <po-loading-overlay *ngIf="loadingStart" [p-screen-lock]="true"></po-loading-overlay>
+    </po-modal>
+  </ng-container>
+
+  <ng-container>
+    <!-- Modal de Informacoes do Equipamento -->
+    <po-modal
+      #modalInformacoesEquipamento
+      [p-title]="'Informações do Equipamento - '"
+      [p-click-out]="true"
+      [p-hide-close]="true"
+      [p-primary-action]="fecharJanela"
+      [p-size]="'auto'"
+    >
+      <!-- <app-informacoes-equipamento [equipamento]="equipamentoSelecionado"></app-informacoes-equipamento>-->
+    </po-modal>
+  </ng-container>
+
+  <po-loading-overlay [p-screen-lock]="true" *ngIf="loadingAbrirSolicitacao"></po-loading-overlay>
+</po-page-default>

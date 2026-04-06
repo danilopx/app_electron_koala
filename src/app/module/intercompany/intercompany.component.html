@@ -1,0 +1,262 @@
+<div class="producao-page">
+  <po-page-default>
+    <po-loading-overlay *ngIf="loagingPage" [p-text]="'Aguarde'"></po-loading-overlay>
+    <po-container [p-no-border]="true" [p-no-padding]="true" class="po-m-2">
+       
+      <div class="header">
+         
+        <div class="header-actions">
+          <po-button
+            class="primary"
+            p-icon="po-icon po-icon-upload"
+            (p-click)="newPedido()"
+            p-label="Incluir Pedido">
+          </po-button>
+        </div>
+      </div>
+
+      <app-status-cards
+        [cards]="stepCards"
+        [loading]="loadingState"
+        [updatedAt]="statusUpdatedAt"
+        (list)="filterByStep($event)"
+      ></app-status-cards>
+
+      <div class="table-card">
+        <app-table
+          [p-items]="items?.pedidos"
+          [p-hide-columns-manager]="true"
+          p-container="true"
+          [p-selectable]="false"
+          [p-sort]="true"
+          [p-striped]="true"
+          [p-literals]="customLiterals"
+          [p-loading]="loadingState"
+          [p-columns]="columns"
+          [p-max-columns]="7"
+          [p-page]="currentPage"
+          [p-page-size]="pageSize"
+          [p-total-records]="totalRecords"
+          p-server-side="true"
+          (p-page-change)="onPageChange($event)"
+          (p-expanded)="onExpandDetail($event)"
+          [p-infinite-scroll]="false"
+          [p-auto-collapse]="true"
+          (p-show-more)="listPedidos(true,this.tipo)">
+
+          <div app-table-filters class="minuta-filters">
+            <div class="filter-field">
+              <label for="intercompanyStart">Data de</label>
+              <input id="intercompanyStart" type="date" [(ngModel)]="filterStart" />
+            </div>
+            <div class="filter-field">
+              <label for="intercompanyEnd">Data até</label>
+              <input id="intercompanyEnd" type="date" [(ngModel)]="filterEnd" />
+            </div>
+            <div class="filter-field">
+              <label for="intercompanyStep">Status</label>
+              <select id="intercompanyStep" [(ngModel)]="currentStepFilter">
+                <option *ngFor="let opt of stepOptions" [value]="opt.value">{{ opt.label }}</option>
+              </select>
+            </div>
+            <div class="filter-actions">
+              <po-button class="secondary" p-label="Filtrar" p-kind="primary" (p-click)="applyFilters()">
+              </po-button>
+              <po-button class="secondary ml" p-label="Limpar" p-kind="secondary" (p-click)="clearFilters()">
+              </po-button>
+            </div>
+          </div>
+
+    <ng-template p-table-row-template let-rowItem let-i="rowIndex">
+
+
+      <po-widget>
+
+        <div class="po-row widget-header">
+          <div class="po-md-6">
+            <div class="pedido-title">Pedido {{rowItem.numero}}</div>
+            <div class="pedido-subtitle"> {{ rowItem.nome }}</div>
+          </div>
+          <div class="po-md-6 header-actions">
+            <po-button
+              *ngIf="rowItem.step === '5' "
+              class="po-mb-2"
+              p-icon="po-icon po-icon-document"
+              (p-click)="classPedido(rowItem.filial,rowItem.numero,rowItem.tipo)"
+              p-label="Classificar">
+            </po-button>
+
+         <!-- <div *ngIf="rowItem.step == '3' && rowItem.status == 'AG'">
+            <div class="po-md-9 po-text-right">
+              <po-tag p-value="Aguardando Transmissão" p-color="red"></po-tag>
+            </div>
+          </div>*-->
+
+            <po-button
+              *ngIf="rowItem.step === '5' || rowItem.step === '6' || rowItem.step === '4'"
+              class="po-mb-2"
+              p-icon="po-icon po-icon-document"
+              (p-click)="viewPedido(rowItem.filial,rowItem.numero,rowItem.tipo)"
+              p-label="Visualizar Nota Fiscal">
+            </po-button>
+
+            <po-button
+              *ngIf="rowItem.step === '3' "
+              class="po-mb-2"
+              p-icon="po-icon po-icon-document"
+              (p-click)="invoicePedido(rowItem.filial,rowItem.numero,rowItem.tipo)"
+              p-label="Gerar Nota Fiscal">
+            </po-button>
+          
+          
+            <po-button
+              *ngIf="  rowItem.step === '2' "
+              class="po-mb-2"
+              p-icon="po-icon po-icon-document"
+              (p-click)="releasePedido(rowItem.filial,rowItem.numero,rowItem.tipo)"
+              p-label="Liberar Estoque">
+            </po-button>
+
+
+            <po-button
+              *ngIf="rowItem.step === '0' || rowItem.step === '1' || rowItem.step === '2'  "
+              class="po-mb-2"
+              p-icon="po-icon po-icon-document"
+              (p-click)="editPedido(rowItem.filial,rowItem.numero,rowItem.tipo)"
+              p-label="Editar Pedido">
+            </po-button>
+          </div>
+
+        </div>
+
+     
+        <div class="po-row">
+
+          <div class="stepper-lock">
+            <po-stepper
+              class="stepper-readonly"
+              [p-sequential]="true"
+              [p-step-icons]="true"
+              [p-steps]="getStepsForRow(rowItem)"
+            ></po-stepper>
+            <div class="stepper-lock-overlay" (click)="$event.preventDefault(); $event.stopPropagation()"></div>
+          </div>
+         
+        </div>
+
+        <div class="po-row info">
+
+          <po-info class="po-md-3 align-info" p-label="Nota Fiscal" [p-value]="rowItem.notasLabel">
+          </po-info>
+          <po-info class="po-md-2 align-info" p-label="Tabela de Preço" [p-value]="rowItem.tabela">
+          </po-info>
+
+          <po-info class="po-md-2 align-info" p-label="Condição Pgto" [p-value]="rowItem.condpag"> </po-info>
+
+          <po-info
+            class="po-md-2 align-info"
+            p-label="Data Classificação"
+            [p-value]="getDataFaturadoValue(rowItem)"
+          ></po-info>
+
+          <po-info class="po-md-3 align-info" p-label="Classificação" [p-value]="rowItem.userclass"></po-info>
+
+        </div>
+      </po-widget>
+
+
+
+    </ng-template>
+
+        </app-table>
+      </div>
+    </po-container>
+  </po-page-default>
+</div>
+
+<po-modal
+  p-click-out="true"
+  p-size="xl"
+  class="sigamnt-modal"
+  [p-title]="action === 'nota' ? 'Nota Fiscal' : 'Confirmação'"
+>
+
+
+  <po-list-view p-property-title="name" [p-items]="pedido">
+
+    <ng-template p-list-view-content-template let-pedido let-code="index">
+
+
+      <div *ngIf="action === 'nota'">
+        <div class="po-row">
+          <po-info
+            class="po-md-4"
+            p-label="Nota Fiscal:"
+            [p-value]="(pedido.notas?.[0]?.doc || pedido.notas?.[0]?.nota || pedido.numero) + (pedido.notas?.[0]?.serie ? '/' + pedido.notas[0].serie : '')"
+          ></po-info>
+          <po-info class="po-md-4" p-label="Data Emissão Pedido:" [p-value]="formatarDataBrasileira(pedido.emissao)"></po-info>
+          <po-info class="po-md-4" p-label="Data Emissão NF:" [p-value]="formatarDataBrasileira(pedido.notas[0].emissaonf)"></po-info>
+        </div>
+        <div class="po-row">
+          <po-info class="po-md-6 po-font-text-uppercase" p-label="Filial(Origem)"
+            [p-value]="pedido.empresa "></po-info>
+          <po-info class="po-md-6 po-font-text-uppercase" p-label="Filial(Destino)" [p-value]="pedido.nome"></po-info>
+
+        </div>
+
+        <po-divider></po-divider>
+
+        <div *ngFor="let nota of pedido.notas">
+          <div class="po-row" *ngIf="nota.item === '01'">
+            <po-info class="po-md-1" p-label="Item" [p-value]="nota.item"></po-info>
+            <po-info class="po-md-3" p-label="Produto" [p-value]="nota.produto"></po-info>
+            <po-info class="po-md-1" p-label="UM" [p-value]="nota.um"></po-info>
+            <po-info class="po-md-2" p-label="Quantidade" [p-value]="nota.quant"></po-info>
+            <po-info class="po-md-1" p-label="TES" [p-value]="nota.tes"></po-info>
+            <po-info class="po-md-2" p-label="Lote" [p-value]="nota.lote"></po-info>
+            <po-info class="po-md-2" p-label="Amz. Entrada" [p-value]="nota.localD1"></po-info>
+
+          </div>
+
+          <div class="po-row" *ngIf="nota.item !=='01'">
+            <po-info class="po-md-1" p-label="" [p-value]="nota.item"></po-info>
+            <po-info class="po-md-3" p-label="" [p-value]="nota.produto"></po-info>
+            <po-info class="po-md-1" p-label="" [p-value]="nota.um"></po-info>
+            <po-info class="po-md-2" p-label="" [p-value]="nota.quant"></po-info>
+            <po-info class="po-md-1" p-label="" [p-value]="nota.tes"></po-info>
+            <po-info class="po-md-2" p-label="" [p-value]="nota.lote"></po-info>
+            <po-info class="po-md-2" p-label="" [p-value]="nota.localD1"></po-info>
+          </div>
+        </div>
+
+      </div>
+
+
+
+      <div *ngIf="action === 'liberar'">
+
+        <div class="po-md-12 po-mb-3">
+          <font class="po-font-text-large-bold ">{{mensagem}}</font>
+        </div>
+      </div>
+
+
+
+
+
+
+
+    </ng-template>
+
+  </po-list-view>
+
+
+
+
+
+
+
+
+
+
+</po-modal>

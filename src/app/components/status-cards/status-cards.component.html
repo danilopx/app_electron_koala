@@ -1,0 +1,18 @@
+<div class="status-cards">
+  <div class="status-card" *ngFor="let card of cards">
+    <div class="card-header">
+      <div class="card-title">{{ title }}</div>
+      <div class="card-badge" [ngClass]="card.colorClass">
+        <span class="card-dot" [ngClass]="card.colorClass"></span>
+        <span>{{ card.label }}</span>
+      </div>
+    </div>
+    <div class="card-body">
+      <div class="card-count">{{ loading ? '...' : card.count }}</div>
+      <div class="card-meta">Última Atualização {{ updatedAt || '--:--' }}</div>
+    </div>
+    <div class="card-actions">
+      <button type="button" class="card-button" (click)="onList(card.step)">Listar</button>
+    </div>
+  </div>
+</div>
