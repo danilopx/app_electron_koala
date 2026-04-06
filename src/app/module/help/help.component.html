@@ -17,13 +17,21 @@
     </nav>
 
     <section class="help-grid">
-      <article class="help-card" *ngFor="let section of sections" [id]="section.id">
-        <h3>{{ section.title }}</h3>
-        <p>{{ section.description }}</p>
-        <ul>
-          <li *ngFor="let item of section.items">{{ item }}</li>
-        </ul>
-      </article>
+      <details class="help-card" *ngFor="let section of sections" [id]="section.id" [open]="section.id === 'configuracao-inicial'">
+        <summary class="help-card-summary">
+          <div class="help-card-summary-text">
+            <span class="help-card-highlight">{{ section.highlight }}</span>
+            <h3>{{ section.title }}</h3>
+            <p>{{ section.description }}</p>
+          </div>
+          <span class="help-card-arrow" aria-hidden="true">⌄</span>
+        </summary>
+        <div class="help-card-body">
+          <ul>
+            <li *ngFor="let item of section.items">{{ item }}</li>
+          </ul>
+        </div>
+      </details>
     </section>
   </po-container>
 </div>
