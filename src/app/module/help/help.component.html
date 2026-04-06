@@ -9,8 +9,15 @@
       </p>
     </section>
 
+    <nav class="help-topics" aria-label="Topicos de ajuda">
+      <a class="help-topic" *ngFor="let topic of topics" [href]="'#' + topic.target">
+        <span class="help-topic-label">{{ topic.label }}</span>
+        <span class="help-topic-note">{{ topic.note }}</span>
+      </a>
+    </nav>
+
     <section class="help-grid">
-      <article class="help-card" *ngFor="let section of sections">
+      <article class="help-card" *ngFor="let section of sections" [id]="section.id">
         <h3>{{ section.title }}</h3>
         <p>{{ section.description }}</p>
         <ul>
