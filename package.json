@@ -3,6 +3,10 @@
   "version": "1.0.10",
   "main": "electron/main.js",
   "desktopAppUrl": "http://koala.simplifysystem.com.br/",
+  "author": {
+    "name": "Simplify Soluções",
+    "email": "suporte@simplifysystem.com.br"
+  },
   "scripts": {
     "ng": "ng",
     "start": "npm run start:web",

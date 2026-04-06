@@ -19,6 +19,7 @@ module.exports = {
     icon: 'src/assets/Simplify-256.png',
     target: ['AppImage', 'deb'],
     category: 'Office',
+    maintainer: 'Simplify Soluções <suporte@simplifysystem.com.br>',
   },
   publish: isGitHubPublishEnabled
     ? [
