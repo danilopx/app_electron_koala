@@ -68,6 +68,21 @@ docker compose up --build
 
 O frontend fica exposto em `http://localhost:4600`.
 
+## Deploy no servidor
+
+Para atualizar o app em um servidor com Git e Docker:
+
+```bash
+./deploy.sh
+```
+
+O script faz:
+
+1. `git pull`
+2. `docker compose up -d --build simplifysystem_koala`
+3. mostra o status do container
+4. exibe os ultimos logs do serviço
+
 Para testar localmente apontando para um frontend remoto sem empacotar:
 
 ```bash

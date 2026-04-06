@@ -1,8 +1,8 @@
 version: '3.8'
 
 services:
-  koala-web:
-    container_name: koala_web
+  simplifysystem_koala:
+    container_name: simplifysystem_koala
     build:
       context: .
       dockerfile: Dockerfile
