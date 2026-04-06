@@ -7,6 +7,7 @@ import { Location } from '@angular/common';
 import { SupportModalService } from './service/support-modal.service';
 import { environment } from '../environments/environment';
 import { ConfiguracaoSistemaService } from './service/configuracao-sistema.service';
+import packageJson from '../../package.json';
 
 @Component({
   selector: 'app-root',
@@ -18,7 +19,7 @@ export class AppComponent implements OnInit {
   menu = false;
   readonly currentYear = new Date().getFullYear();
   readonly supportEmail = 'suporte@simplifysolucoes.com.br';
-  readonly appVersion = '1.0.0';
+  readonly appVersion = packageJson.version;
   showSupportModal = false;
   showBack = false;
   breadcrumb = '';
