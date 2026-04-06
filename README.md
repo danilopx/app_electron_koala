@@ -37,6 +37,19 @@ npm run release:desktop:github
 
 Antes de publicar, aumente a `version` no `package.json`. O Electron compara essa versao com a do GitHub Releases para decidir se existe atualizacao.
 
+Para evitar reescrever as variáveis toda vez, use o atalho local:
+
+```powershell
+npm run release:desktop:local
+```
+
+Esse comando usa por padrão:
+- `http://koala.simplifysystem.com.br/`
+- `danilopx`
+- `app_electron_koala`
+
+Se `GH_TOKEN` ou `GITHUB_TOKEN` já estiverem definidos na sessão, ele usa esses valores; caso contrário, pede o token na hora.
+
 Para gerar web de producao e instalador em uma unica execucao, informando a URL final do frontend:
 
 ```powershell

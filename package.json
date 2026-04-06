@@ -1,6 +1,6 @@
 {
   "name": "koala",
-  "version": "1.0.4",
+  "version": "1.0.5",
   "main": "electron/main.js",
   "desktopAppUrl": "http://koala.simplifysystem.com.br/",
   "scripts": {
@@ -25,6 +25,7 @@
     "release:web": "npm run build:web:prod",
     "release:desktop": "powershell -NoProfile -ExecutionPolicy Bypass -Command \"if (-not $env:KOALA_DESKTOP_URL) { throw 'Defina KOALA_DESKTOP_URL com a URL publicada do frontend.' }; & .\\scripts\\release.ps1 -DesktopUrl $env:KOALA_DESKTOP_URL\"",
     "release:desktop:github": "powershell -NoProfile -ExecutionPolicy Bypass -Command \"if (-not $env:KOALA_DESKTOP_URL) { throw 'Defina KOALA_DESKTOP_URL com a URL publicada do frontend.' }; & .\\scripts\\release.ps1 -DesktopUrl $env:KOALA_DESKTOP_URL -PublishToGithub\"",
+    "release:desktop:local": "powershell -NoProfile -ExecutionPolicy Bypass -Command \"& .\\scripts\\release-local.ps1\"",
     "watch": "ng build --watch --configuration development",
     "test": "ng test"
   },
