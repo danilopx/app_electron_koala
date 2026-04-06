@@ -1,0 +1,11 @@
+version: '3.8'
+
+services:
+  koala-web:
+    container_name: koala_web
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - "4600:80"
+    restart: unless-stopped
