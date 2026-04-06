@@ -1,37 +1,36 @@
 <div class="help-page">
   <po-container [p-no-border]="true" class="po-m-2">
     <section class="help-hero">
-      <span class="help-eyebrow">Help</span>
-      <h2 class="help-title">Guia das Rotinas</h2>
+      <span class="help-eyebrow">Ajuda</span>
+      <h2 class="help-title">Guia rapido das rotinas</h2>
       <p class="help-description">
-        Guia rapido baseado nas regras atuais do sistema. Use esta pagina para tirar duvidas de configuracao,
-        acesso, producao manual, producao automatica e mensagens mais comuns do processo.
+        Resumo direto do que o sistema faz, do que o usuario precisa preencher e das regras que mais causam duvida.
       </p>
     </section>
 
     <nav class="help-topics" aria-label="Topicos de ajuda">
-      <a class="help-topic" *ngFor="let topic of topics" [href]="'#' + topic.target">
+      <button
+        type="button"
+        class="help-topic"
+        *ngFor="let topic of topics"
+        [class.is-active]="selectedSectionId === topic.target"
+        (click)="selectSection(topic.target)"
+      >
         <span class="help-topic-label">{{ topic.label }}</span>
         <span class="help-topic-note">{{ topic.note }}</span>
-      </a>
+      </button>
     </nav>
 
-    <section class="help-grid">
-      <details class="help-card" *ngFor="let section of sections" [id]="section.id" [open]="section.id === 'configuracao-inicial'">
-        <summary class="help-card-summary">
-          <div class="help-card-summary-text">
-            <span class="help-card-highlight">{{ section.highlight }}</span>
-            <h3>{{ section.title }}</h3>
-            <p>{{ section.description }}</p>
-          </div>
-          <span class="help-card-arrow" aria-hidden="true">⌄</span>
-        </summary>
-        <div class="help-card-body">
-          <ul>
-            <li *ngFor="let item of section.items">{{ item }}</li>
-          </ul>
-        </div>
-      </details>
+    <section class="help-panel">
+      <div class="help-panel-header">
+        <span class="help-panel-badge">{{ selectedSection.note }}</span>
+        <h3>{{ selectedSection.title }}</h3>
+        <p>{{ selectedSection.description }}</p>
+      </div>
+
+      <ul class="help-panel-list">
+        <li *ngFor="let item of selectedSection.items">{{ item }}</li>
+      </ul>
     </section>
   </po-container>
 </div>
