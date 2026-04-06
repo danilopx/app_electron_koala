@@ -7,15 +7,16 @@ O projeto contém módulos de software como IoT, ANDON, Manutenção, Monitorame
 O Electron pode funcionar apenas como ponte com o computador local, enquanto o frontend Angular fica hospedado na nuvem.
 
 - Em desenvolvimento, o Electron abre `http://127.0.0.1:4301/#/login`.
-- Em produção, o Electron abre `https://koala.simplifysystem.com.br/` por padrão, ou a URL definida em `desktopAppUrl` no `package.json` ou pela variável `KOALA_DESKTOP_URL`.
+- Em produção, o Electron abre `http://koala.simplifysystem.com.br/` por padrão, ou a URL definida em `desktopAppUrl` no `package.json` ou pela variável `KOALA_DESKTOP_URL`.
 - O build desktop final não empacota mais o frontend Angular.
+- O desktop pode checar atualizacoes via GitHub Releases quando for empacotado com `GH_OWNER` e `GH_REPO`.
 
 ### Como configurar
 
 No arquivo `package.json`, ajuste:
 
 ```json
-"desktopAppUrl": "https://koala.simplifysystem.com.br/"
+"desktopAppUrl": "http://koala.simplifysystem.com.br/"
 ```
 
 Para gerar o executável final desacoplado do frontend:
@@ -24,10 +25,22 @@ Para gerar o executável final desacoplado do frontend:
 npm run build:desktop
 ```
 
+Para gerar um release desktop e publicar no GitHub Releases:
+
+```powershell
+$env:KOALA_DESKTOP_URL = 'http://koala.simplifysystem.com.br/'
+$env:GH_OWNER = 'seu-usuario-ou-organizacao'
+$env:GH_REPO = 'seu-repositorio'
+$env:GH_TOKEN = 'seu-token-do-github' # ou GITHUB_TOKEN
+npm run release:desktop:github
+```
+
+Antes de publicar, aumente a `version` no `package.json`. O Electron compara essa versao com a do GitHub Releases para decidir se existe atualizacao.
+
 Para gerar web de producao e instalador em uma unica execucao, informando a URL final do frontend:
 
 ```powershell
-$env:KOALA_DESKTOP_URL = 'https://koala.simplifysystem.com.br/'
+$env:KOALA_DESKTOP_URL = 'http://koala.simplifysystem.com.br/'
 npm run release:desktop
 ```
 
@@ -53,7 +66,7 @@ Ou manualmente:
 Se o frontend for publicado em uma pasta local ou compartilhamento, o release pode copiar a saida para um diretorio destino:
 
 ```powershell
-.\scripts\release.ps1 -DesktopUrl 'https://koala.simplifysystem.com.br/' -PublishDir 'C:\deploy\koala-web'
+.\scripts\release.ps1 -DesktopUrl 'http://koala.simplifysystem.com.br/' -PublishDir 'C:\deploy\koala-web'
 ```
 
 ## Build web com Docker
@@ -101,6 +114,8 @@ O projeto agora pode continuar web e também rodar como aplicativo desktop para 
    `npm run start:desktop`
 4. Para gerar o build desktop:
    `npm run build:desktop`
+5. Para publicar uma nova versão no GitHub Releases:
+   `npm run release:desktop:github`
 
 ### Como chamar a impressão no Angular
 

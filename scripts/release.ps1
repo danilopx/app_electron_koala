@@ -2,7 +2,13 @@ param(
   [Parameter(Mandatory = $true)]
   [string]$DesktopUrl,
 
-  [string]$PublishDir
+  [string]$PublishDir,
+
+  [switch]$PublishToGithub,
+
+  [string]$GithubOwner,
+
+  [string]$GithubRepo
 )
 
 $ErrorActionPreference = 'Stop'
@@ -14,6 +20,12 @@ function Write-Info([string]$Message) {
 function Assert-HttpUrl([string]$Value) {
   if ([string]::IsNullOrWhiteSpace($Value) -or $Value -notmatch '^https?://') {
     throw "DesktopUrl invalida: '$Value'"
+  }
+}
+
+function Assert-Text([string]$Value, [string]$Name) {
+  if ([string]::IsNullOrWhiteSpace($Value)) {
+    throw "$Name nao informado."
   }
 }
 
@@ -41,8 +53,30 @@ try {
     Copy-Item -Path (Join-Path $repoRoot 'dist\Koala\*') -Destination $targetDir -Recurse -Force
   }
 
-  Write-Info 'Gerando instalador desktop'
-  npm run build:desktop:fresh
+  if ($PublishToGithub) {
+    if (-not $GithubOwner) {
+      $GithubOwner = $env:GH_OWNER
+    }
+
+    if (-not $GithubRepo) {
+      $GithubRepo = $env:GH_REPO
+    }
+
+    Assert-Text $GithubOwner 'GithubOwner'
+    Assert-Text $GithubRepo 'GithubRepo'
+    if ([string]::IsNullOrWhiteSpace($env:GH_TOKEN) -and [string]::IsNullOrWhiteSpace($env:GITHUB_TOKEN)) {
+      throw 'GH_TOKEN ou GITHUB_TOKEN nao informado.'
+    }
+
+    $env:GH_OWNER = $GithubOwner.Trim()
+    $env:GH_REPO = $GithubRepo.Trim()
+
+    Write-Info "Gerando instalador desktop e publicando no GitHub ($($env:GH_OWNER)/$($env:GH_REPO))"
+    npm run build:desktop:github
+  } else {
+    Write-Info 'Gerando instalador desktop'
+    npm run build:desktop:fresh
+  }
 }
 finally {
   if (Test-Path -LiteralPath $desktopConfigPath) {

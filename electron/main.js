@@ -1,6 +1,8 @@
-const { app, BrowserWindow, ipcMain } = require('electron');
+const fs = require('fs');
+const { app, BrowserWindow, dialog, ipcMain } = require('electron');
 const path = require('path');
 const packageJson = require('../package.json');
+const { autoUpdater } = require('electron-updater');
 const sqlite = require('./sqlite');
 const { runSqliteMigrations } = require('./sqlite-migrations');
 const { SerialPort } = require('serialport');
@@ -23,6 +25,7 @@ let serialStartPromise = null;
 let autoExecutionSession = null;
 let autoExecutionLastSignal = '0';
 let isShuttingDown = false;
+let autoUpdaterInitialized = false;
 
 function wait(ms) {
   return new Promise((resolve) => setTimeout(resolve, ms));
@@ -756,6 +759,72 @@ function readDesktopConfigUrl() {
   }
 }
 
+function hasAppUpdateConfig() {
+  const updateConfigPath = path.join(process.resourcesPath || '', 'app-update.yml');
+  return fs.existsSync(updateConfigPath);
+}
+
+async function setupAutoUpdater() {
+  if (autoUpdaterInitialized || !app.isPackaged || !hasAppUpdateConfig()) {
+    return;
+  }
+
+  autoUpdaterInitialized = true;
+  autoUpdater.autoDownload = true;
+  autoUpdater.autoInstallOnAppQuit = false;
+
+  autoUpdater.on('error', (error) => {
+    console.error('[electron] Falha na verificacao de atualizacoes:', error);
+  });
+
+  autoUpdater.on('update-available', (info) => {
+    console.log('[electron] Atualizacao disponivel:', info?.version || info);
+  });
+
+  autoUpdater.on('update-not-available', (info) => {
+    console.log('[electron] Aplicacao atualizada:', info?.version || info);
+  });
+
+  autoUpdater.on('download-progress', (progress) => {
+    console.log('[electron] Baixando atualizacao:', {
+      percent: progress?.percent,
+      transferred: progress?.transferred,
+      total: progress?.total,
+      bytesPerSecond: progress?.bytesPerSecond,
+    });
+  });
+
+  autoUpdater.on('update-downloaded', async (info) => {
+    try {
+      const response = await dialog.showMessageBox({
+        type: 'info',
+        title: 'Atualizacao disponivel',
+        message: `A versao ${info?.version || 'nova'} foi baixada.`,
+        detail: 'Deseja reiniciar agora para concluir a atualizacao?',
+        buttons: ['Reiniciar agora', 'Depois'],
+        defaultId: 0,
+        cancelId: 1,
+        noLink: true,
+      });
+
+      if (response.response === 0) {
+        await stopSerialReading();
+        sqlite.close();
+        isShuttingDown = true;
+        autoUpdater.quitAndInstall();
+      }
+    } catch (error) {
+      console.error('[electron] Falha ao exibir dialogo de atualizacao:', error);
+    }
+  });
+
+  try {
+    await autoUpdater.checkForUpdates();
+  } catch (error) {
+    console.error('[electron] Falha ao verificar atualizacoes:', error);
+  }
+}
+
 function getAppUrl() {
   const startUrl = process.env.ELECTRON_START_URL;
   const remoteAppUrl =
@@ -1439,11 +1508,13 @@ app.whenReady().then(async () => {
   await createWindow();
   loadAutoExecutionSession();
   await restoreAutomaticExecutionSerial();
+  await setupAutoUpdater();
 
   app.on('activate', async () => {
     if (BrowserWindow.getAllWindows().length === 0) {
       await createWindow();
       await restoreAutomaticExecutionSerial();
+      await setupAutoUpdater();
     }
   });
 });
