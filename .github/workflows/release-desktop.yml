@@ -47,7 +47,10 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: windows-desktop
-          path: ${{ env.ELECTRON_BUILDER_OUTPUT }}/**
+          path: |
+            ${{ env.ELECTRON_BUILDER_OUTPUT }}/Koala Setup *.exe
+            ${{ env.ELECTRON_BUILDER_OUTPUT }}/Koala Setup *.exe.blockmap
+            ${{ env.ELECTRON_BUILDER_OUTPUT }}/latest.yml
           if-no-files-found: error
 
   build-linux:
@@ -85,7 +88,10 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: linux-desktop
-          path: ${{ env.ELECTRON_BUILDER_OUTPUT }}/**
+          path: |
+            ${{ env.ELECTRON_BUILDER_OUTPUT }}/Koala-*.AppImage
+            ${{ env.ELECTRON_BUILDER_OUTPUT }}/koala_*.deb
+            ${{ env.ELECTRON_BUILDER_OUTPUT }}/latest-linux.yml
           if-no-files-found: error
 
   release:
