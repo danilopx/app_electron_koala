@@ -296,7 +296,7 @@ export class ProducaoAutomaticoComponent implements OnInit, AfterViewInit, OnDes
     const resultado = await this.producaoEtiquetaService.imprimirEtiqueta(etiqueta);
 
     if (!resultado.success) {
-      this.poNotification.warning('Nao foi possivel abrir a impressao da etiqueta.');
+      this.poNotification.warning(resultado.error || 'Nao foi possivel abrir a impressao da etiqueta.');
       return;
     }
 

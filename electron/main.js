@@ -691,13 +691,35 @@ async function restoreAutomaticExecutionSerial() {
 }
 
 function printWebContents(targetWindow, options = {}) {
+  const printOptions = {
+    silent: Boolean(options.silent),
+    printBackground: options.printBackground !== false,
+    deviceName: options.deviceName || undefined,
+  };
+
+  if (options.pageSize) {
+    printOptions.pageSize = options.pageSize;
+  }
+
+  if (options.margins) {
+    printOptions.margins = options.margins;
+  }
+
+  if (options.landscape !== undefined) {
+    printOptions.landscape = Boolean(options.landscape);
+  }
+
+  if (options.scaleFactor) {
+    printOptions.scaleFactor = Number(options.scaleFactor);
+  }
+
+  if (options.copies) {
+    printOptions.copies = Number(options.copies);
+  }
+
   return new Promise((resolve) => {
     targetWindow.webContents.print(
-      {
-        silent: Boolean(options.silent),
-        printBackground: options.printBackground !== false,
-        deviceName: options.deviceName || undefined
-      },
+      printOptions,
       (success, failureReason) => {
         resolve({
           success,

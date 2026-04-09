@@ -2,6 +2,20 @@ interface ElectronPrintOptions {
   silent?: boolean;
   printBackground?: boolean;
   deviceName?: string;
+  margins?: {
+    marginType?: 'default' | 'none' | 'printableArea' | 'custom';
+    top?: number;
+    bottom?: number;
+    left?: number;
+    right?: number;
+  };
+  pageSize?: string | {
+    width: number;
+    height: number;
+  };
+  landscape?: boolean;
+  scaleFactor?: number;
+  copies?: number;
 }
 
 interface ElectronPrintHtmlOptions extends ElectronPrintOptions {

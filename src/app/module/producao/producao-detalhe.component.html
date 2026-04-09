@@ -450,6 +450,7 @@
             [(ngModel)]="motivoReimpressao"
             rows="4"
             maxlength="254"
+            [disabled]="salvandoReimpressao"
             placeholder="Descreva o motivo da reimpressão"></textarea>
 
           <label class="reprint-modal-label" for="loginAprovacao">Login de aprovação</label>
@@ -457,6 +458,7 @@
             id="loginAprovacao"
             type="text"
             [(ngModel)]="loginAprovacao"
+            [disabled]="salvandoReimpressao"
             placeholder="Informe o login do usuário superior" />
 
           <label class="reprint-modal-label" for="senhaAprovacao">Senha de aprovação</label>
@@ -464,12 +466,21 @@
             id="senhaAprovacao"
             type="password"
             [(ngModel)]="senhaAprovacao"
+            [disabled]="salvandoReimpressao"
             placeholder="Informe a senha do usuário superior" />
+
+          <p class="reprint-modal-text" *ngIf="statusReimpressao">
+            {{ statusReimpressao }}
+          </p>
         </div>
         <po-modal-footer>
-          <po-button p-label="Cancelar" p-kind="secondary" (p-click)="reprintModal.close()"></po-button>
           <po-button
-            p-label="Confirmar"
+            p-label="Cancelar"
+            p-kind="secondary"
+            [p-disabled]="salvandoReimpressao"
+            (p-click)="reprintModal.close()"></po-button>
+          <po-button
+            [p-label]="salvandoReimpressao ? 'Reimprimindo...' : 'Confirmar'"
             p-kind="primary"
             [p-disabled]="salvandoReimpressao"
             (p-click)="confirmarReimpressao()"></po-button>

@@ -30,6 +30,7 @@ export interface EtiquetaImpressaoResultado {
   success: boolean;
   printerName?: string;
   usedPreview?: boolean;
+  error?: string | null;
 }
 
 @Injectable({
@@ -62,17 +63,32 @@ export class ProducaoEtiquetaService {
           silent: true,
           printBackground: true,
           deviceName: argoxPrinter.name,
+          margins: { marginType: 'none' },
+          pageSize: {
+            width: 100000,
+            height: 75000,
+          },
+          landscape: false,
+          scaleFactor: 100,
+          copies: 1,
         });
 
         if (result.success) {
           return { success: true, printerName: argoxPrinter.name, usedPreview: false };
         }
+
+        return {
+          success: false,
+          printerName: argoxPrinter.name,
+          usedPreview: false,
+          error: result.error || 'O Windows recusou o envio da etiqueta para a impressora.',
+        };
       }
     }
 
     const printWindow = window.open('', '_blank', 'width=900,height=700');
     if (!printWindow) {
-      return { success: false };
+      return { success: false, error: 'Nao foi possivel abrir a janela de preview da etiqueta.' };
     }
 
     printWindow.document.open();

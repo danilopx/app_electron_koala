@@ -1,9 +1,10 @@
 import { Component, OnInit, ViewChild } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
 import { PoModalComponent, PoNotificationService } from '@po-ui/ng-components';
+import { firstValueFrom } from 'rxjs';
 import { EmailHelperService } from 'src/app/shared/services/email-helper.service';
 import { environment } from '../../../environments/environment';
-import { EtiquetaImpressaoDados, ProducaoEtiquetaService } from '../../service/producao-etiqueta.service';
+import { EtiquetaImpressaoDados, EtiquetaImpressaoResultado, ProducaoEtiquetaService } from '../../service/producao-etiqueta.service';
 import {
   ApontamentoProducaoPayload,
   ApontamentoProducaoResponse,
@@ -14,6 +15,7 @@ import {
   OrdemProducaoDetalhe,
   ProducaoService,
   ReimpressaoEtiquetaPayload,
+  ReimpressaoEtiquetaResponse,
 } from '../../service/producao.service';
 
 @Component({
@@ -23,6 +25,7 @@ import {
 })
 export class ProducaoDetalheComponent implements OnInit {
   private readonly quantidadeSimuladaEtiqueta = 1;
+  private readonly reimpressaoLogRetryDelayMs = 3000;
   @ViewChild('reprintModal', { static: false }) reprintModal!: PoModalComponent;
   @ViewChild('apontamentoModal', { static: false }) apontamentoModal!: PoModalComponent;
   @ViewChild('logModal', { static: false }) logModal!: PoModalComponent;
@@ -43,6 +46,7 @@ export class ProducaoDetalheComponent implements OnInit {
   observacaoApontamento = '';
   salvandoApontamento = false;
   salvandoReimpressao = false;
+  statusReimpressao = '';
   mensagemLog = '';
   loagingButton = false;
 
@@ -192,6 +196,8 @@ export class ProducaoDetalheComponent implements OnInit {
     this.motivoReimpressao = '';
     this.loginAprovacao = '';
     this.senhaAprovacao = '';
+    this.salvandoReimpressao = false;
+    this.statusReimpressao = '';
     this.reprintModal.open();
   }
 
@@ -216,6 +222,10 @@ export class ProducaoDetalheComponent implements OnInit {
 
     const ordem = this.ordemSelecionadaReimpressao;
     const apontamento = this.apontamentoSelecionado;
+    const motivo = this.motivoReimpressao.trim();
+    const login = this.loginAprovacao.trim();
+    const senha = this.senhaAprovacao.trim();
+    const contexto = this.contextoReimpressao;
     const payload: ReimpressaoEtiquetaPayload = {
       empresa: environment.grupo || '',
       filial: ordem.op_filial || environment.filial || '',
@@ -225,34 +235,34 @@ export class ProducaoDetalheComponent implements OnInit {
       usuario: this.usuarioLogado || '',
       seq: apontamento.seq || '',
       ordem: `${ordem.op_numero}${ordem.op_item}${ordem.op_sequencia}`,
-      motivo: this.motivoReimpressao.trim(),
+      motivo,
     };
 
     this.salvandoReimpressao = true;
-    this.producaoService.reimprimirEtiqueta(
-      payload,
-      this.loginAprovacao.trim(),
-      this.senhaAprovacao.trim(),
-      this.motivoReimpressao.trim(),
-    ).subscribe({
-      next: async (response) => {
-        this.salvandoReimpressao = false;
+    this.statusReimpressao = 'Imprimindo nova etiqueta...';
 
-        if (String(response.status || '').trim().toLowerCase() === 'error') {
-          this.abrirLogErroReimpressao(response.backendMsg || response.msg || 'Nao foi possivel autorizar a reimpressao.');
-          return;
-        }
+    try {
+      const impressao = await this.imprimirEtiquetaReimpressao(apontamento, ordem, motivo);
 
-        await this.imprimirEtiquetaReimpressao(apontamento, ordem);
-        this.poNotification.success(response.backendMsg || response.msg || `Reimpressao solicitada para ${this.contextoReimpressao}.`);
-        this.reprintModal.close();
-        this.carregarDetalhe();
-      },
-      error: (error) => {
-        this.salvandoReimpressao = false;
-        this.abrirLogErroReimpressao(this.getErroApontamento(error));
-      },
-    });
+      if (!impressao.success) {
+        this.statusReimpressao = '';
+        this.poNotification.warning(impressao.error || 'Nao foi possivel imprimir a nova etiqueta.');
+        return;
+      }
+
+      this.statusReimpressao = 'Etiqueta impressa. Gravando log obrigatorio da reimpressao...';
+      const response = await this.gravarLogReimpressaoObrigatorio(payload, login, senha, motivo);
+
+      this.poNotification.success(this.getMensagemSucessoReimpressao(impressao, response.backendMsg || response.msg || '', contexto));
+      this.reprintModal.close();
+      this.resetFormularioReimpressao();
+      this.carregarDetalhe();
+    } catch (error) {
+      this.statusReimpressao = '';
+      this.abrirLogErroReimpressao(this.getErroApontamento(error));
+    } finally {
+      this.salvandoReimpressao = false;
+    }
   }
 
   isStatusAberto(status: string): boolean {
@@ -490,7 +500,7 @@ export class ProducaoDetalheComponent implements OnInit {
     const resultado = await this.producaoEtiquetaService.imprimirEtiqueta(etiqueta);
 
     if (!resultado.success) {
-      this.poNotification.warning('Nao foi possivel abrir a impressao da etiqueta.');
+      this.poNotification.warning(resultado.error || 'Nao foi possivel abrir a impressao da etiqueta.');
       return;
     }
 
@@ -507,9 +517,10 @@ export class ProducaoDetalheComponent implements OnInit {
   private async imprimirEtiquetaReimpressao(
     apontamento: ApontamentoProducaoInfo,
     ordem: OrdemProducao | OrdemIntermediaria,
-  ): Promise<void> {
+    motivo: string,
+  ): Promise<EtiquetaImpressaoResultado> {
     if (this.isSetorGranel(ordem)) {
-      return;
+      return { success: true, usedPreview: false };
     }
 
     const ordemCompleta = `${ordem.op_numero}${ordem.op_item}${ordem.op_sequencia}`;
@@ -533,28 +544,76 @@ export class ProducaoDetalheComponent implements OnInit {
       barcodeValue: ordemCompleta,
       countryOfOrigin: 'Brazil',
       productType: ordem.op_tipo_prod || '',
-      observation: this.motivoReimpressao.trim() || ordem.op_observacao || '',
+      observation: motivo || ordem.op_observacao || '',
       quantity: dadosSerraria.pecas,
       unit: ordem.op_um || apontamento.um || '-',
       volume: dadosSerraria.volume,
       sequenceLabel: apontamento.seq ? `R${apontamento.seq}` : (apontamento.numseq ? `R${apontamento.numseq}` : ''),
     };
 
-    const resultado = await this.producaoEtiquetaService.imprimirEtiqueta(etiqueta);
+    return this.producaoEtiquetaService.imprimirEtiqueta(etiqueta);
+  }
 
-    if (!resultado.success) {
-      this.poNotification.warning('Nao foi possivel abrir a impressao da etiqueta.');
-      return;
+  private resetFormularioReimpressao(): void {
+    this.motivoReimpressao = '';
+    this.loginAprovacao = '';
+    this.senhaAprovacao = '';
+    this.apontamentoSelecionado = undefined;
+    this.ordemSelecionadaReimpressao = undefined;
+    this.contextoReimpressao = '';
+    this.statusReimpressao = '';
+  }
+
+  private async gravarLogReimpressaoObrigatorio(
+    payload: ReimpressaoEtiquetaPayload,
+    login: string,
+    senha: string,
+    motivo: string,
+  ): Promise<ReimpressaoEtiquetaResponse> {
+    let tentativa = 0;
+
+    while (true) {
+      tentativa += 1;
+
+      try {
+        const response = await firstValueFrom(this.producaoService.reimprimirEtiqueta(payload, login, senha, motivo));
+
+        if (String(response.status || '').trim().toLowerCase() === 'error') {
+          throw new Error(response.backendMsg || response.msg || 'A API recusou a gravacao do log da reimpressao.');
+        }
+
+        return response;
+      } catch (error) {
+        this.statusReimpressao =
+          `Etiqueta impressa. Log obrigatorio ainda nao gravado. Tentativa ${tentativa}. ` +
+          `Nova tentativa em ${Math.round(this.reimpressaoLogRetryDelayMs / 1000)} segundos. ` +
+          this.getErroApontamento(error);
+
+        await this.wait(this.reimpressaoLogRetryDelayMs);
+      }
+    }
+  }
+
+  private wait(ms: number): Promise<void> {
+    return new Promise((resolve) => setTimeout(resolve, ms));
+  }
+
+  private getMensagemSucessoReimpressao(
+    impressao: EtiquetaImpressaoResultado,
+    mensagemApi: string,
+    contexto: string,
+  ): string {
+    const complementoApi = mensagemApi ? ` ${mensagemApi}` : '';
+
+    if (impressao.printerName) {
+      return `Nova etiqueta impressa em ${impressao.printerName} e log de reimpressao gravado.${complementoApi}`;
     }
 
-    if (resultado.usedPreview) {
-      this.poNotification.information('Nenhuma impressora Argox encontrada. Abrindo preview da etiqueta.');
-      return;
+    if (impressao.usedPreview) {
+      return `Nova etiqueta gerada no preview e log de reimpressao gravado.${complementoApi}`;
     }
 
-    if (resultado.printerName) {
-      this.poNotification.success(`Etiqueta enviada para ${resultado.printerName}.`);
-    }
+    return `Reimpressao concluida para ${contexto || 'a etiqueta'} e log gravado.${complementoApi}`;
   }
 
   private getDescricaoEtiqueta(ordem: OrdemProducao | OrdemIntermediaria): string {
