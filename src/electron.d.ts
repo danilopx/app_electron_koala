@@ -16,6 +16,9 @@ interface ElectronPrintOptions {
   landscape?: boolean;
   scaleFactor?: number;
   copies?: number;
+  timeoutMs?: number;
+  useDialogFallback?: boolean;
+  dialogTimeoutMs?: number;
 }
 
 interface ElectronPrintHtmlOptions extends ElectronPrintOptions {
@@ -147,8 +150,15 @@ interface ElectronSqliteAllResult<T = any> {
   error?: string | null;
 }
 
+interface ElectronAppInfo {
+  version: string;
+  name: string;
+  isPackaged: boolean;
+}
+
 interface ElectronAPI {
   isDesktop: boolean;
+  getAppInfo: () => Promise<ElectronAppInfo>;
   getPrinters: () => Promise<ElectronPrinterInfo[]>;
   print: (options?: ElectronPrintOptions) => Promise<ElectronPrintResult>;
   printHtml: (options: ElectronPrintHtmlOptions) => Promise<ElectronPrintResult>;

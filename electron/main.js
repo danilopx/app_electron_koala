@@ -691,6 +691,7 @@ async function restoreAutomaticExecutionSerial() {
 }
 
 function printWebContents(targetWindow, options = {}) {
+  const timeoutMs = Number(options.timeoutMs || 20000);
   const printOptions = {
     silent: Boolean(options.silent),
     printBackground: options.printBackground !== false,
@@ -718,9 +719,28 @@ function printWebContents(targetWindow, options = {}) {
   }
 
   return new Promise((resolve) => {
+    let settled = false;
+    const timeout = setTimeout(() => {
+      if (settled) {
+        return;
+      }
+
+      settled = true;
+      resolve({
+        success: false,
+        error: `Tempo limite ao enviar a etiqueta para a impressora. Verifique se a impressora esta online, com etiqueta/ribbon e se o driver respondeu em ate ${Math.round(timeoutMs / 1000)} segundos.`
+      });
+    }, timeoutMs);
+
     targetWindow.webContents.print(
       printOptions,
       (success, failureReason) => {
+        if (settled) {
+          return;
+        }
+
+        settled = true;
+        clearTimeout(timeout);
         resolve({
           success,
           error: success ? null : failureReason || 'Falha ao imprimir.'
@@ -747,7 +767,17 @@ async function printHtmlContent(html, options = {}) {
   try {
     await printWindow.loadURL(`data:text/html;charset=utf-8,${encodeURIComponent(html)}`);
     await new Promise((resolve) => setTimeout(resolve, 250));
-    return await printWebContents(printWindow, options);
+    const result = await printWebContents(printWindow, options);
+
+    if (result.success || !options.useDialogFallback) {
+      return result;
+    }
+
+    return await printWebContents(printWindow, {
+      ...options,
+      silent: false,
+      timeoutMs: Number(options.dialogTimeoutMs || 120000),
+    });
   } catch (error) {
     return {
       success: false,
@@ -996,6 +1026,12 @@ ipcMain.handle('desktop:get-printers', async () => {
 
   return win.webContents.getPrintersAsync();
 });
+
+ipcMain.handle('desktop:get-app-info', async () => ({
+  version: app.getVersion(),
+  name: app.getName(),
+  isPackaged: app.isPackaged,
+}));
 
 ipcMain.handle('serial:start-reading', async () => {
   try {

@@ -462,12 +462,27 @@
             placeholder="Informe o login do usuário superior" />
 
           <label class="reprint-modal-label" for="senhaAprovacao">Senha de aprovação</label>
-          <input
-            id="senhaAprovacao"
-            type="password"
-            [(ngModel)]="senhaAprovacao"
-            [disabled]="salvandoReimpressao"
-            placeholder="Informe a senha do usuário superior" />
+          <div class="reprint-password-field">
+            <input
+              id="senhaAprovacao"
+              [type]="mostrarSenhaAprovacao ? 'text' : 'password'"
+              [(ngModel)]="senhaAprovacao"
+              [disabled]="salvandoReimpressao"
+              placeholder="Informe a senha do usuário superior" />
+            <button
+              type="button"
+              class="reprint-password-toggle"
+              [disabled]="salvandoReimpressao"
+              (click)="alternarSenhaAprovacao()"
+              [attr.aria-label]="mostrarSenhaAprovacao ? 'Ocultar senha' : 'Mostrar senha'">
+              <svg *ngIf="!mostrarSenhaAprovacao" viewBox="0 0 24 24" aria-hidden="true">
+                <path d="M12 5c5 0 8.6 4.4 9.7 6.1a1.6 1.6 0 0 1 0 1.8C20.6 14.6 17 19 12 19s-8.6-4.4-9.7-6.1a1.6 1.6 0 0 1 0-1.8C3.4 9.4 7 5 12 5Zm0 2C8.1 7 5.1 10.3 4.1 12c1 1.7 4 5 7.9 5s6.9-3.3 7.9-5c-1-1.7-4-5-7.9-5Zm0 2.2A2.8 2.8 0 1 1 12 14.8 2.8 2.8 0 0 1 12 9.2Z" />
+              </svg>
+              <svg *ngIf="mostrarSenhaAprovacao" viewBox="0 0 24 24" aria-hidden="true">
+                <path d="M3.3 2 22 20.7 20.7 22l-3.1-3.1A10.5 10.5 0 0 1 12 20c-5 0-8.6-4.4-9.7-6.1a1.6 1.6 0 0 1 0-1.8 17 17 0 0 1 4-4.3L2 3.3 3.3 2Zm4.4 7.1A14.7 14.7 0 0 0 4.1 13c1 1.7 4 5 7.9 5 1.5 0 2.8-.5 4-1.2l-2-2A2.8 2.8 0 0 1 9.2 10l-1.5-.9ZM12 6c5 0 8.6 4.4 9.7 6.1a1.6 1.6 0 0 1 0 1.8 15 15 0 0 1-2.2 2.8l-1.4-1.4A13.7 13.7 0 0 0 19.9 13c-1-1.7-4-5-7.9-5-.8 0-1.6.1-2.3.4L8.1 6.8A10.7 10.7 0 0 1 12 6Z" />
+              </svg>
+            </button>
+          </div>
 
           <p class="reprint-modal-text" *ngIf="statusReimpressao">
             {{ statusReimpressao }}
@@ -492,13 +507,14 @@
         p-click-out="true"
         p-size="md"
         class="system-modal"
-        p-title="Detalhes do Log">
+        [p-title]="tituloLog">
         <div class="modal-body">
           <div class="log-content" [innerHTML]="mensagemLog"></div>
         </div>
 
         <po-modal-footer>
           <po-button
+            *ngIf="mostrarEnviarLog"
             p-label="Enviar Log Por Email"
             p-kind="primary"
             [p-loading]="loagingButton"

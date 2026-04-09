@@ -2,6 +2,7 @@ const { contextBridge, ipcRenderer } = require('electron');
 
 contextBridge.exposeInMainWorld('electronAPI', {
   isDesktop: true,
+  getAppInfo: () => ipcRenderer.invoke('desktop:get-app-info'),
   getPrinters: () => ipcRenderer.invoke('desktop:get-printers'),
   print: (options) => ipcRenderer.invoke('desktop:print', options),
   printHtml: (options) => ipcRenderer.invoke('desktop:print-html', options),

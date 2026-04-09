@@ -20,6 +20,7 @@ export class AppComponent implements OnInit {
   readonly currentYear = new Date().getFullYear();
   readonly supportEmail = 'suporte@simplifysolucoes.com.br';
   readonly appVersion = packageJson.version;
+  desktopVersion = '';
   showSupportModal = false;
   showBack = false;
   breadcrumb = '';
@@ -65,6 +66,8 @@ export class AppComponent implements OnInit {
   }
 
   ngOnInit(): void {
+    void this.loadDesktopVersion();
+
     // Workaround Po-UI bug eventdata may call focusFunction with undefined elements
     document.addEventListener('focusin', (event: FocusEvent) => {
       const target = event.target as HTMLElement | null;
@@ -147,6 +150,25 @@ export class AppComponent implements OnInit {
 
   goBack(): void {
     this.location.back();
+  }
+
+  get versionLabel(): string {
+    return this.desktopVersion
+      ? `Web: ${this.appVersion} | Desktop: ${this.desktopVersion}`
+      : `Web: ${this.appVersion}`;
+  }
+
+  private async loadDesktopVersion(): Promise<void> {
+    if (!window.electronAPI?.getAppInfo) {
+      return;
+    }
+
+    try {
+      const info = await window.electronAPI.getAppInfo();
+      this.desktopVersion = info?.version || '';
+    } catch (error) {
+      this.desktopVersion = '';
+    }
   }
 
   private buildMenus(isAnonymous: boolean): Array<PoMenuItem> {

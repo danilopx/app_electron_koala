@@ -71,6 +71,9 @@ export class ProducaoEtiquetaService {
           landscape: false,
           scaleFactor: 100,
           copies: 1,
+          timeoutMs: 20000,
+          useDialogFallback: true,
+          dialogTimeoutMs: 120000,
         });
 
         if (result.success) {

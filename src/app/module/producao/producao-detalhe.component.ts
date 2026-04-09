@@ -35,6 +35,7 @@ export class ProducaoDetalheComponent implements OnInit {
   motivoReimpressao = '';
   loginAprovacao = '';
   senhaAprovacao = '';
+  mostrarSenhaAprovacao = false;
   apontamentoSelecionado?: ApontamentoProducaoInfo;
   ordemSelecionadaReimpressao?: OrdemProducao | OrdemIntermediaria;
   contextoReimpressao = '';
@@ -48,6 +49,8 @@ export class ProducaoDetalheComponent implements OnInit {
   salvandoReimpressao = false;
   statusReimpressao = '';
   mensagemLog = '';
+  tituloLog = 'Detalhes do Log';
+  mostrarEnviarLog = true;
   loagingButton = false;
 
   constructor(
@@ -196,9 +199,14 @@ export class ProducaoDetalheComponent implements OnInit {
     this.motivoReimpressao = '';
     this.loginAprovacao = '';
     this.senhaAprovacao = '';
+    this.mostrarSenhaAprovacao = false;
     this.salvandoReimpressao = false;
     this.statusReimpressao = '';
     this.reprintModal.open();
+  }
+
+  alternarSenhaAprovacao(): void {
+    this.mostrarSenhaAprovacao = !this.mostrarSenhaAprovacao;
   }
 
   async confirmarReimpressao(): Promise<void> {
@@ -245,21 +253,23 @@ export class ProducaoDetalheComponent implements OnInit {
       const impressao = await this.imprimirEtiquetaReimpressao(apontamento, ordem, motivo);
 
       if (!impressao.success) {
-        this.statusReimpressao = '';
-        this.poNotification.warning(impressao.error || 'Nao foi possivel imprimir a nova etiqueta.');
+        this.abrirLogErroReimpressao(impressao.error || 'Nao foi possivel imprimir a nova etiqueta.');
+        this.resetFormularioReimpressao();
         return;
       }
 
       this.statusReimpressao = 'Etiqueta impressa. Gravando log obrigatorio da reimpressao...';
       const response = await this.gravarLogReimpressaoObrigatorio(payload, login, senha, motivo);
 
-      this.poNotification.success(this.getMensagemSucessoReimpressao(impressao, response.backendMsg || response.msg || '', contexto));
+      const mensagemSucesso = this.getMensagemSucessoReimpressao(impressao, response.backendMsg || response.msg || '', contexto);
+      this.poNotification.success(mensagemSucesso);
       this.reprintModal.close();
       this.resetFormularioReimpressao();
       this.carregarDetalhe();
+      this.abrirLogSucessoReimpressao(mensagemSucesso);
     } catch (error) {
-      this.statusReimpressao = '';
       this.abrirLogErroReimpressao(this.getErroApontamento(error));
+      this.resetFormularioReimpressao();
     } finally {
       this.salvandoReimpressao = false;
     }
@@ -558,6 +568,7 @@ export class ProducaoDetalheComponent implements OnInit {
     this.motivoReimpressao = '';
     this.loginAprovacao = '';
     this.senhaAprovacao = '';
+    this.mostrarSenhaAprovacao = false;
     this.apontamentoSelecionado = undefined;
     this.ordemSelecionadaReimpressao = undefined;
     this.contextoReimpressao = '';
@@ -657,14 +668,25 @@ export class ProducaoDetalheComponent implements OnInit {
   }
 
   private abrirLogErro(mensagem: string): void {
+    this.tituloLog = 'Detalhes do Log';
+    this.mostrarEnviarLog = true;
     this.mensagemLog = String(mensagem || 'Nao foi possivel realizar o apontamento.');
     this.apontamentoModal?.close();
     this.logModal?.open();
   }
 
   private abrirLogErroReimpressao(mensagem: string): void {
+    this.tituloLog = 'Reimpressao nao concluida';
+    this.mostrarEnviarLog = true;
     this.mensagemLog = String(mensagem || 'Nao foi possivel realizar a reimpressao.');
     this.reprintModal?.close();
+    this.logModal?.open();
+  }
+
+  private abrirLogSucessoReimpressao(mensagem: string): void {
+    this.tituloLog = 'Reimpressao concluida';
+    this.mostrarEnviarLog = false;
+    this.mensagemLog = String(mensagem || 'Nova etiqueta gerada e reimpressao registrada.');
     this.logModal?.open();
   }
 
