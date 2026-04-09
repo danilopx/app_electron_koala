@@ -158,11 +158,12 @@ export class ProducaoEtiquetaService {
               overflow: hidden;
             }
             .label {
-              width: 100mm;
-              max-width: 100mm;
+              width: 98mm;
+              max-width: 98mm;
               height: 75mm;
               max-height: 75mm;
-              padding: 1.8mm 2.6mm 1.2mm;
+              margin: 0 auto;
+              padding: 1.2mm 0.8mm 0.9mm;
               box-sizing: border-box;
               overflow: hidden;
               page-break-after: avoid;
@@ -180,29 +181,30 @@ export class ProducaoEtiquetaService {
             .header-grid {
               display: grid;
               grid-template-columns: 1.1fr 0.8fr 1fr;
-              gap: 1.4mm;
+              gap: 1mm;
               align-items: start;
-              padding-left: 2.3mm;
-              padding-right: 2.3mm;
+              padding-left: 1.2mm;
+              padding-right: 1.2mm;
             }
             .split-grid {
               display: grid;
               grid-template-columns: 1fr 1fr;
               gap: 2mm;
-              padding-left: 2.3mm;
-              padding-right: 2.3mm;
+              padding-left: 1.2mm;
+              padding-right: 1.2mm;
             }
             .split-grid--meta {
-              gap: 2mm;
+              gap: 0;
               align-items: center;
+              justify-items: center;
             }
             .cell-title {
               font-weight: 700;
-              font-size: 7.14pt;
+              font-size: 6.7pt;
               margin-bottom: 0.315mm;
             }
             .cell-value {
-              font-size: 7.56pt;
+              font-size: 7pt;
               line-height: 1.05;
             }
             .row {
@@ -219,18 +221,41 @@ export class ProducaoEtiquetaService {
               min-height: 8mm;
             }
             .row > * {
-              padding-left: 2.3mm;
-              padding-right: 2.3mm;
+              padding-left: 1.2mm;
+              padding-right: 1.2mm;
             }
             .meta-inline {
               display: flex;
               gap: 1.26mm;
               flex-wrap: wrap;
               margin-top: 0.315mm;
-              font-size: 7.14pt;
+              font-size: 6.6pt;
             }
             .meta-inline strong {
-              font-size: 7.14pt;
+              font-size: 6.6pt;
+            }
+            .net-weight-row {
+              display: flex;
+              align-items: center;
+              justify-content: center;
+              text-align: center;
+              min-height: 9mm;
+            }
+            .net-weight-box {
+              display: inline-flex;
+              align-items: baseline;
+              justify-content: center;
+              gap: 2.2mm;
+              width: 100%;
+            }
+            .net-weight-label {
+              font-size: 10pt;
+              font-weight: 700;
+            }
+            .net-weight-value {
+              font-size: 16pt;
+              font-weight: 700;
+              line-height: 1;
             }
             .small-grid {
               display: grid;
@@ -242,10 +267,10 @@ export class ProducaoEtiquetaService {
             }
             .small-grid div {
               min-height: 7.875mm;
-              padding: 0.95mm;
+              padding: 0.75mm;
               border-right: 1px solid #5f5f5f;
               box-sizing: border-box;
-              font-size: 7.03pt;
+              font-size: 6.4pt;
               line-height: 1.1;
             }
             .small-grid div:last-child {
@@ -254,7 +279,7 @@ export class ProducaoEtiquetaService {
             .field-head {
               display: block;
               font-weight: 700;
-              font-size: 7.14pt;
+              font-size: 6.6pt;
               margin-bottom: 0.42mm;
             }
             .barcode-wrap {
@@ -266,16 +291,16 @@ export class ProducaoEtiquetaService {
             }
             .origin {
               margin-top: 0.21mm;
-              font-size: 7.03pt;
+              font-size: 6.5pt;
               text-align: center;
             }
             .footer-note {
               display: flex;
               justify-content: flex-end;
               margin-top: 0.315mm;
-              padding-left: 2.3mm;
-              padding-right: 2.3mm;
-              font-size: 7.35pt;
+              padding-left: 1.2mm;
+              padding-right: 1.2mm;
+              font-size: 6.8pt;
               font-weight: 700;
             }
             .barcode-area {
@@ -327,9 +352,11 @@ export class ProducaoEtiquetaService {
                 <div class="cell-value">${this.escapeHtml(etiqueta.productDescription)}</div>
               </div>
 
-              <div class="split-grid split-grid--meta row row-tight row-no-border">
-                <div class="cell-value"><strong>Shift:</strong> ${this.escapeHtml(etiqueta.shift)}</div>
-                <div class="cell-value"><strong>Net Weight:</strong> ${this.escapeHtml(etiqueta.netWeight)}</div>
+              <div class="split-grid split-grid--meta row row-tight row-no-border net-weight-row">
+                <div class="net-weight-box">
+                  <span class="net-weight-label">Net Weight:</span>
+                  <span class="net-weight-value">${this.escapeHtml(etiqueta.netWeight)}</span>
+                </div>
               </div>
 
               <div class="small-grid">
