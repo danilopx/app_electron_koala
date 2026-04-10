@@ -432,6 +432,28 @@
       </po-modal>
 
       <po-modal
+        #apontamentoStatusModal
+        class="system-modal"
+        p-title="Status do apontamento"
+        p-click-out="false"
+        p-size="md">
+        <div class="apontamento-status-body">
+          <div [class]="getStatusApontamentoClass()">
+            <div class="apontamento-status-spinner" *ngIf="statusApontamentoProcessando" aria-hidden="true"></div>
+            <strong>{{ statusApontamentoMensagem }}</strong>
+            <p>{{ statusApontamentoDetalhe }}</p>
+          </div>
+        </div>
+        <po-modal-footer>
+          <po-button
+            p-label="Fechar"
+            p-kind="primary"
+            [p-disabled]="statusApontamentoProcessando"
+            (p-click)="fecharStatusApontamento()"></po-button>
+        </po-modal-footer>
+      </po-modal>
+
+      <po-modal
         #reprintModal
         class="system-modal"
         p-title="Motivo da reimpressão"

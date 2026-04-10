@@ -72,6 +72,10 @@ export class ProducaoEtiquetaService {
           scaleFactor: 100,
           copies: 1,
           timeoutMs: 20000,
+          verifyQueueStatus: true,
+          queueCheckDelayMs: 1200,
+          queueCheckAttempts: 8,
+          queueCheckIntervalMs: 900,
           useDialogFallback: true,
           dialogTimeoutMs: 120000,
         });

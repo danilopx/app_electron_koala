@@ -12,13 +12,18 @@ import { catchError, finalize, switchMap, take, filter } from 'rxjs/operators';
 import { LoginService } from '../service/login.service';
 import { environment } from 'src/environments/environment';
 import { Router } from '@angular/router';
+import { LicenseErrorModalService } from '../service/license-error-modal.service';
 
 @Injectable()
 export class AddTokenProtheus implements HttpInterceptor {
   private isRefreshingToken = false;
   private tokenSubject: BehaviorSubject<string | null> = new BehaviorSubject<string | null>(null);
 
-  constructor(private loginService: LoginService, private router: Router) {}
+  constructor(
+    private loginService: LoginService,
+    private router: Router,
+    private licenseErrorModalService: LicenseErrorModalService,
+  ) {}
 
   intercept(req: HttpRequest<any>, next: HttpHandler): Observable<HttpEvent<any>> {
     const refresh_token = localStorage.getItem('refresh_token');
@@ -127,6 +132,11 @@ export class AddTokenProtheus implements HttpInterceptor {
       return EMPTY;
     }
 
+    if (this.isLicenseServerUnavailable(error)) {
+      this.licenseErrorModalService.show(this.getErrorMessage(error));
+      return throwError(() => error);
+    }
+
     let cMessageCustomErro = '';
     if (error.status === 0) {
       cMessageCustomErro = 'Nosso servidor não está respondendo';
@@ -149,6 +159,21 @@ export class AddTokenProtheus implements HttpInterceptor {
       if (error.error.message) return error.error.message;
     }
     return error.message || 'Erro desconhecido';
+  }
+
+  private isLicenseServerUnavailable(error: any): boolean {
+    const status = Number(error?.status ?? 0);
+    const message = String(
+      error?.error?.message ||
+        error?.error?.errorMessage ||
+        error?.message ||
+        '',
+    )
+      .normalize('NFD')
+      .replace(/[\u0300-\u036f]/g, '')
+      .toLowerCase();
+
+    return status === 503 && message.includes('license server') && message.includes('licenca');
   }
 
   private normalizeApiRoot(value: string): string {

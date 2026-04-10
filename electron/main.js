@@ -1,4 +1,5 @@
 const fs = require('fs');
+const { execFile } = require('child_process');
 const { app, BrowserWindow, dialog, ipcMain } = require('electron');
 const path = require('path');
 const packageJson = require('../package.json');
@@ -750,6 +751,119 @@ function printWebContents(targetWindow, options = {}) {
   });
 }
 
+function runPowerShell(script, timeoutMs = 5000) {
+  return new Promise((resolve, reject) => {
+    const encodedCommand = Buffer.from(script, 'utf16le').toString('base64');
+    execFile(
+      'powershell.exe',
+      ['-NoProfile', '-ExecutionPolicy', 'Bypass', '-EncodedCommand', encodedCommand],
+      { timeout: timeoutMs, windowsHide: true },
+      (error, stdout, stderr) => {
+        if (error) {
+          reject(new Error(String(stderr || error.message || 'Falha ao consultar a fila de impressao.').trim()));
+          return;
+        }
+
+        resolve(String(stdout || '').trim());
+      },
+    );
+  });
+}
+
+async function getPrinterQueueJobs(printerName) {
+  const safePrinterName = String(printerName || '').replace(/'/g, "''");
+  const script = `
+$ErrorActionPreference = 'Stop'
+$printerName = '${safePrinterName}'
+$jobs = @(Get-PrintJob -PrinterName $printerName -ErrorAction Stop | Select-Object Id, Name, JobStatus, Size, TotalPages, SubmittedTime)
+if ($jobs.Count -eq 0) {
+  '[]'
+} else {
+  $jobs | ConvertTo-Json -Compress
+}
+`;
+  const output = await runPowerShell(script, 7000);
+  if (!output) {
+    return [];
+  }
+
+  const parsed = JSON.parse(output);
+  return Array.isArray(parsed) ? parsed : [parsed];
+}
+
+function getPrintJobStatusText(job) {
+  return String(job?.JobStatus || job?.jobStatus || job?.Status || job?.status || '').trim();
+}
+
+function isPrintJobError(job) {
+  const status = getPrintJobStatusText(job)
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .toLowerCase();
+
+  return [
+    'error',
+    'erro',
+    'offline',
+    'paperout',
+    'paper out',
+    'sem papel',
+    'blocked',
+    'bloqueado',
+    'paused',
+    'pausado',
+    'user intervention',
+    'intervencao',
+    'attention',
+  ].some((token) => status.includes(token));
+}
+
+function formatPrintJobError(printerName, job) {
+  const status = getPrintJobStatusText(job) || 'erro na fila';
+  const jobName = String(job?.Name || job?.name || job?.Id || job?.id || '').trim();
+  const complemento = jobName ? ` Job: ${jobName}.` : '';
+  return `A etiqueta foi enviada para ${printerName}, mas a fila de impressao retornou status "${status}".${complemento} Verifique a impressora, etiqueta/ribbon e a fila do Windows.`;
+}
+
+async function verifyPrinterQueueStatus(printerName, options = {}) {
+  if (process.platform !== 'win32' || !printerName) {
+    return { success: true };
+  }
+
+  const attempts = Math.max(1, Number(options.queueCheckAttempts || 8));
+  const initialDelayMs = Math.max(0, Number(options.queueCheckDelayMs || 1200));
+  const intervalMs = Math.max(250, Number(options.queueCheckIntervalMs || 900));
+  let lastJobs = [];
+
+  await wait(initialDelayMs);
+
+  for (let attempt = 0; attempt < attempts; attempt += 1) {
+    const jobs = await getPrinterQueueJobs(printerName);
+    lastJobs = jobs;
+    const erro = jobs.find(isPrintJobError);
+    if (erro) {
+      return {
+        success: false,
+        error: formatPrintJobError(printerName, erro),
+      };
+    }
+
+    if (jobs.length === 0) {
+      return { success: true };
+    }
+
+    if (attempt < attempts - 1) {
+      await wait(intervalMs);
+    }
+  }
+
+  const status = getPrintJobStatusText(lastJobs[0]) || 'ainda na fila';
+  return {
+    success: false,
+    error: `A etiqueta foi enviada para ${printerName}, mas ainda consta na fila de impressao com status "${status}". Verifique a impressora, etiqueta/ribbon e a fila do Windows.`,
+  };
+}
+
 async function printHtmlContent(html, options = {}) {
   const printWindow = new BrowserWindow({
     show: false,
@@ -768,6 +882,13 @@ async function printHtmlContent(html, options = {}) {
     await printWindow.loadURL(`data:text/html;charset=utf-8,${encodeURIComponent(html)}`);
     await new Promise((resolve) => setTimeout(resolve, 250));
     const result = await printWebContents(printWindow, options);
+
+    if (result.success && options.verifyQueueStatus !== false && options.deviceName) {
+      const queueResult = await verifyPrinterQueueStatus(options.deviceName, options);
+      if (!queueResult.success) {
+        return queueResult;
+      }
+    }
 
     if (result.success || !options.useDialogFallback) {
       return result;

@@ -17,6 +17,10 @@ interface ElectronPrintOptions {
   scaleFactor?: number;
   copies?: number;
   timeoutMs?: number;
+  verifyQueueStatus?: boolean;
+  queueCheckDelayMs?: number;
+  queueCheckAttempts?: number;
+  queueCheckIntervalMs?: number;
   useDialogFallback?: boolean;
   dialogTimeoutMs?: number;
 }

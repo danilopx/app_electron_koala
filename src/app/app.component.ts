@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnDestroy, OnInit } from '@angular/core';
 import { LoginService } from './service/login.service';
 import { NavigationEnd, Router } from '@angular/router';
 import { PoMenuItem, PoNotificationService } from '@po-ui/ng-components';
@@ -8,13 +8,15 @@ import { SupportModalService } from './service/support-modal.service';
 import { environment } from '../environments/environment';
 import { ConfiguracaoSistemaService } from './service/configuracao-sistema.service';
 import packageJson from '../../package.json';
+import { LicenseErrorModalService } from './service/license-error-modal.service';
+import { Subscription } from 'rxjs';
 
 @Component({
   selector: 'app-root',
   templateUrl: 'app.component.html',
   styleUrls: ['app.component.scss'],
 })
-export class AppComponent implements OnInit {
+export class AppComponent implements OnInit, OnDestroy {
   menus!: Array<PoMenuItem>;
   menu = false;
   readonly currentYear = new Date().getFullYear();
@@ -33,6 +35,9 @@ export class AppComponent implements OnInit {
     subject: '',
     message: ''
   };
+  showLicenseErrorModal = false;
+  licenseErrorMessage = '';
+  private licenseErrorSubscription?: Subscription;
 
   constructor(
     public loginService: LoginService,
@@ -41,6 +46,7 @@ export class AppComponent implements OnInit {
     private supportModalService: SupportModalService,
     private configuracaoSistemaService: ConfiguracaoSistemaService,
     private poNotification: PoNotificationService,
+    private licenseErrorModalService: LicenseErrorModalService,
   ) {
     this.updateBackVisibility(this.router.url);
     this.router.events
@@ -69,6 +75,10 @@ export class AppComponent implements OnInit {
 
   ngOnInit(): void {
     void this.loadDesktopVersion();
+    this.licenseErrorSubscription = this.licenseErrorModalService.licenseError$.subscribe((message) => {
+      this.licenseErrorMessage = message;
+      this.showLicenseErrorModal = true;
+    });
 
     // Workaround Po-UI bug eventdata may call focusFunction with undefined elements
     document.addEventListener('focusin', (event: FocusEvent) => {
@@ -86,6 +96,10 @@ export class AppComponent implements OnInit {
         }
       }
     }, true);
+  }
+
+  ngOnDestroy(): void {
+    this.licenseErrorSubscription?.unsubscribe();
   }
 
   public get isLogged(): boolean {
@@ -115,6 +129,13 @@ export class AppComponent implements OnInit {
 
   closeSupportModal(): void {
     this.showSupportModal = false;
+  }
+
+  closeLicenseErrorModal(): void {
+    this.showLicenseErrorModal = false;
+    this.licenseErrorModalService.close();
+    this.loginService.logout();
+    this.router.navigate(['/login']);
   }
 
   submitSupport(): void {

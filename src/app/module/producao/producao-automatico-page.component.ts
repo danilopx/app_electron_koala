@@ -35,7 +35,7 @@ interface ProducaoAutomaticaOrdem {
   multiploCaixa: number;
   armazem: string;
   unidadeMedida: string;
-  pacote: number;
+  setorProducao: string;
   situacao: string;
   quantidadeProduzidaAtual: number;
   producao: number;
@@ -368,9 +368,12 @@ export class ProducaoAutomaticoComponent implements OnInit, AfterViewInit, OnDes
   }
 
   private getEtiquetaDados(): EtiquetaImpressaoDados {
-    if (!this.ordem) {
+    if (!this.ordem || !this.ordemDetalhe?.ordem) {
       throw new Error('Ordem nao carregada.');
     }
+
+    const ordem = this.ordemDetalhe.ordem;
+    const dadosSerraria = this.calcularDadosEtiquetaSerraria(ordem, Number(this.ordem.quantidadeProduzidaAtual || 0));
 
     return {
       internalOrder: this.ordem.internalOrder,
@@ -380,7 +383,7 @@ export class ProducaoAutomaticoComponent implements OnInit, AfterViewInit, OnDes
       time: this.ordem.hora,
       userName: this.ordem.usuario,
       customer: this.ordem.cliente,
-      productDescription: this.ordemDetalhe?.ordem?.produto_descricao_ing || this.ordem.descricao || '-',
+      productDescription: this.getDescricaoEtiqueta(ordem),
       shift: '1',
       netWeight: `${String(this.ordem.quantidadeProduzidaAtual || 0).replace('.', ',')} ${this.ordem.unidadeMedida}`,
       certificate: this.ordem.certificate || '-',
@@ -390,6 +393,11 @@ export class ProducaoAutomaticoComponent implements OnInit, AfterViewInit, OnDes
       stretch: this.ordem.strech || '',
       barcodeValue: this.ordem.productionOrder,
       countryOfOrigin: this.ordem.origem,
+      productType: ordem.op_tipo_prod || '',
+      observation: ordem.op_observacao || '',
+      quantity: dadosSerraria.pecas,
+      unit: ordem.op_um || '-',
+      volume: dadosSerraria.volume,
     };
   }
 
@@ -413,7 +421,7 @@ export class ProducaoAutomaticoComponent implements OnInit, AfterViewInit, OnDes
       multiploCaixa: Number(ordem.produto_quant_multipla || 0),
       armazem: ordem.op_local || '-',
       unidadeMedida: ordem.op_um || '-',
-      pacote: 0,
+      setorProducao: ordem.op_tipo_prod || '-',
       situacao: this.getStatusLabel(ordem.op_status),
       quantidadeProduzidaAtual: 0,
       producao: Number(ordem.op_quant_apontada || 0),
@@ -479,6 +487,95 @@ export class ProducaoAutomaticoComponent implements OnInit, AfterViewInit, OnDes
     }
 
     return 0;
+  }
+
+  private isSetorGranel(ordem: OrdemProducao | undefined): boolean {
+    return String(ordem?.op_tipo_prod || '').trim().toUpperCase() === 'GRANEL';
+  }
+
+  private isSerrariaComConversao(ordem: OrdemProducao | undefined): boolean {
+    if (!ordem) {
+      return false;
+    }
+
+    const setor = String(ordem.op_tipo_prod || '').trim().toUpperCase();
+    return setor === 'SERRARIA' && this.hasMedidasProduto(ordem);
+  }
+
+  private getQuantidadeApontamentoConvertida(ordem: OrdemProducao, quantidade: number): number {
+    if (!this.isSerrariaComConversao(ordem)) {
+      return quantidade;
+    }
+
+    const altura = this.parseMedidaProduto(ordem.produto_altura);
+    const comprimento = this.parseMedidaProduto(ordem.produto_comprimento);
+    const largura = this.parseMedidaProduto(ordem.produto_largura);
+
+    if (!(altura > 0) || !(comprimento > 0) || !(largura > 0) || !(quantidade > 0)) {
+      return 0;
+    }
+
+    const volume = (altura / 100) * (comprimento / 100) * (largura / 100) * quantidade;
+    return Math.round(volume);
+  }
+
+  private getDescricaoEtiqueta(ordem: OrdemProducao): string {
+    return ordem.produto_descricao_ing || ordem.produto_descricao || ordem.op_observacao || '-';
+  }
+
+  private calcularDadosEtiquetaSerraria(ordem: OrdemProducao, quantidade: number): { pecas: string; volume: string } {
+    const altura = this.parseMedidaProduto(ordem.produto_altura);
+    const comprimento = this.parseMedidaProduto(ordem.produto_comprimento);
+    const largura = this.parseMedidaProduto(ordem.produto_largura);
+    const quant = Number(quantidade || 0);
+    const unidade = String(ordem.op_um || '').trim().toUpperCase();
+
+    if (!(altura > 0) || !(comprimento > 0) || !(largura > 0) || !(quant > 0)) {
+      const valorPadrao = this.formatarInteiroEtiqueta(quant);
+      return { pecas: valorPadrao, volume: '-' };
+    }
+
+    const volumePorPeca = (altura / 100) * (comprimento / 100) * (largura / 100);
+    if (!(volumePorPeca > 0)) {
+      const valorPadrao = this.formatarInteiroEtiqueta(quant);
+      return { pecas: valorPadrao, volume: '-' };
+    }
+
+    if (unidade === 'M3') {
+      const pecas = Math.round(quant / volumePorPeca);
+      return {
+        pecas: this.formatarInteiroEtiqueta(pecas),
+        volume: this.formatarInteiroEtiqueta(quant),
+      };
+    }
+
+    const volume = Math.round(volumePorPeca * quant);
+    return {
+      pecas: this.formatarInteiroEtiqueta(quant),
+      volume: this.formatarInteiroEtiqueta(volume),
+    };
+  }
+
+  private parseMedidaProduto(value: number | string | undefined): number {
+    const raw = String(value ?? '').trim();
+    const normalized = raw.includes(',') && raw.includes('.')
+      ? raw.replace(/\./g, '').replace(',', '.')
+      : raw.replace(',', '.');
+    const parsed = Number(normalized);
+    return Number.isFinite(parsed) ? parsed : 0;
+  }
+
+  private hasMedidasProduto(ordem: OrdemProducao): boolean {
+    return (
+      this.parseMedidaProduto(ordem.produto_altura) > 0 &&
+      this.parseMedidaProduto(ordem.produto_comprimento) > 0 &&
+      this.parseMedidaProduto(ordem.produto_largura) > 0
+    );
+  }
+
+  private formatarInteiroEtiqueta(value: number): string {
+    const numero = Math.round(Number(value || 0));
+    return numero.toLocaleString('pt-BR');
   }
 
   private formatDate(value: string): string {
@@ -834,13 +931,19 @@ export class ProducaoAutomaticoComponent implements OnInit, AfterViewInit, OnDes
 
     const ordem = this.ordemDetalhe.ordem;
     const saldoDisponivel = this.getSaldoDisponivelAtual();
+    const quantidadeConvertida = this.getQuantidadeApontamentoConvertida(ordem, quantidadeApontamento);
     if (!(saldoDisponivel > 0)) {
       this.setScreenMessage('Saldo da OP zerado. Nao e permitido realizar novos apontamentos.', 'error');
       await this.enforceOrderFinalizationState();
       return;
     }
 
-    if (quantidadeApontamento > saldoDisponivel) {
+    if (!(quantidadeConvertida > 0)) {
+      this.setScreenMessage('Nao foi possivel converter a quantidade informada para M3.', 'error');
+      return;
+    }
+
+    if (quantidadeConvertida > saldoDisponivel) {
       this.setScreenMessage('Quantidade do apontamento maior que o saldo da OP.', 'error');
       return;
     }
@@ -851,10 +954,10 @@ export class ProducaoAutomaticoComponent implements OnInit, AfterViewInit, OnDes
       ordem: `${ordem.op_numero}${ordem.op_item}${ordem.op_sequencia}`,
       produto: ordem.op_produto,
       conta: '',
-      parctot: this.getParcialTotal(ordem, quantidadeApontamento),
+      parctot: this.getParcialTotal(ordem, quantidadeConvertida),
       perda: 0,
-      quantidade: quantidadeApontamento,
-      um: ordem.op_um,
+      quantidade: quantidadeConvertida,
+      um: this.isSerrariaComConversao(ordem) ? 'M3' : ordem.op_um,
       ccusto: '',
       controle: '',
       obs: observacao,
@@ -992,6 +1095,10 @@ export class ProducaoAutomaticoComponent implements OnInit, AfterViewInit, OnDes
   }
 
   private async imprimirEtiquetaAtual() {
+    if (this.isSetorGranel(this.ordemDetalhe?.ordem)) {
+      return { success: true, usedPreview: false };
+    }
+
     const etiqueta = this.getEtiquetaDados();
     return this.producaoEtiquetaService.imprimirEtiqueta(etiqueta);
   }

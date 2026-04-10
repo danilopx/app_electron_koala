@@ -28,6 +28,7 @@ export class ProducaoDetalheComponent implements OnInit {
   private readonly reimpressaoLogRetryDelayMs = 3000;
   @ViewChild('reprintModal', { static: false }) reprintModal!: PoModalComponent;
   @ViewChild('apontamentoModal', { static: false }) apontamentoModal!: PoModalComponent;
+  @ViewChild('apontamentoStatusModal', { static: false }) apontamentoStatusModal!: PoModalComponent;
   @ViewChild('logModal', { static: false }) logModal!: PoModalComponent;
 
   detalhe?: OrdemProducaoDetalhe;
@@ -48,6 +49,11 @@ export class ProducaoDetalheComponent implements OnInit {
   salvandoApontamento = false;
   salvandoReimpressao = false;
   statusReimpressao = '';
+  statusApontamentoMensagem = '';
+  statusApontamentoDetalhe = '';
+  statusApontamentoTipo: 'info' | 'success' | 'error' = 'info';
+  statusApontamentoProcessando = false;
+  statusApontamentoRecarregarAoFechar = false;
   mensagemLog = '';
   tituloLog = 'Detalhes do Log';
   mostrarEnviarLog = true;
@@ -287,6 +293,7 @@ export class ProducaoDetalheComponent implements OnInit {
     this.perdaApontamento = null;
     this.observacaoApontamento = '';
     this.salvandoApontamento = false;
+    this.resetStatusApontamento();
     this.apontamentoModal.open();
   }
 
@@ -352,25 +359,83 @@ export class ProducaoDetalheComponent implements OnInit {
     };
 
     this.salvandoApontamento = true;
+    this.abrirStatusApontamento('Realizando apontamento...', 'Enviando apontamento para o Protheus.', 'info', true);
     this.producaoService.apontarProducao(payload).subscribe({
       next: async (response) => {
         this.salvandoApontamento = false;
 
         if (String(response.status || '').trim().toLowerCase() === 'error') {
-          this.abrirLogErro(response.msg || 'Nao foi possivel realizar o apontamento.');
+          this.atualizarStatusApontamento(
+            'Nao foi possivel realizar o apontamento.',
+            response.msg || response.backendMsg || 'A API retornou erro no apontamento.',
+            'error',
+            false,
+          );
           return;
         }
 
-        await this.imprimirEtiquetaApontamento(response, ordem, quantidade);
-        this.poNotification.success(response.backendMsg || response.msg || response.status || `Apontamento realizado para ${this.contextoApontamento}.`);
-        this.apontamentoModal.close();
-        this.carregarDetalhe();
+        this.atualizarStatusApontamento(
+          response.backendMsg || response.msg || 'Apontamento confirmado.',
+          'Apontamento confirmado. Imprimindo etiqueta...',
+          'success',
+          true,
+        );
+        try {
+          const impressao = await this.imprimirEtiquetaApontamento(response, ordem, quantidade);
+
+          if (!impressao.success) {
+            this.atualizarStatusApontamento(
+              'Apontamento realizado, mas a etiqueta nao foi impressa.',
+              impressao.error || 'Verifique a impressora e tente imprimir a etiqueta novamente.',
+              'error',
+              false,
+            );
+            this.statusApontamentoRecarregarAoFechar = true;
+            return;
+          }
+
+          this.atualizarStatusApontamento(
+            'Apontamento concluido.',
+            this.getMensagemSucessoApontamento(impressao, response.backendMsg || response.msg || response.status || `Apontamento realizado para ${this.contextoApontamento}.`),
+            'success',
+            false,
+          );
+          this.statusApontamentoRecarregarAoFechar = true;
+        } catch (error) {
+          this.atualizarStatusApontamento(
+            'Apontamento realizado, mas a etiqueta nao foi impressa.',
+            this.getErroApontamento(error),
+            'error',
+            false,
+          );
+          this.statusApontamentoRecarregarAoFechar = true;
+        }
       },
       error: (error) => {
         this.salvandoApontamento = false;
-        this.abrirLogErro(this.getErroApontamento(error));
+        this.atualizarStatusApontamento(
+          'Nao foi possivel realizar o apontamento.',
+          this.getErroApontamento(error),
+          'error',
+          false,
+        );
       },
     });
+  }
+
+  fecharStatusApontamento(): void {
+    if (this.statusApontamentoProcessando) {
+      return;
+    }
+
+    const recarregar = this.statusApontamentoRecarregarAoFechar;
+    this.apontamentoStatusModal?.close();
+    this.resetStatusApontamento();
+
+    if (recarregar) {
+      this.apontamentoModal?.close();
+      this.carregarDetalhe();
+    }
   }
 
   private carregarDetalhe(): void {
@@ -406,6 +471,52 @@ export class ProducaoDetalheComponent implements OnInit {
       error?.message ||
       'Nao foi possivel realizar o apontamento.'
     );
+  }
+
+  private abrirStatusApontamento(
+    mensagem: string,
+    detalhe: string,
+    tipo: 'info' | 'success' | 'error',
+    processando: boolean,
+  ): void {
+    this.atualizarStatusApontamento(mensagem, detalhe, tipo, processando);
+    this.apontamentoStatusModal?.open();
+  }
+
+  private atualizarStatusApontamento(
+    mensagem: string,
+    detalhe: string,
+    tipo: 'info' | 'success' | 'error',
+    processando: boolean,
+  ): void {
+    this.statusApontamentoMensagem = mensagem;
+    this.statusApontamentoDetalhe = detalhe;
+    this.statusApontamentoTipo = tipo;
+    this.statusApontamentoProcessando = processando;
+  }
+
+  private resetStatusApontamento(): void {
+    this.statusApontamentoMensagem = '';
+    this.statusApontamentoDetalhe = '';
+    this.statusApontamentoTipo = 'info';
+    this.statusApontamentoProcessando = false;
+    this.statusApontamentoRecarregarAoFechar = false;
+  }
+
+  getStatusApontamentoClass(): string {
+    return `apontamento-status-card apontamento-status-card--${this.statusApontamentoTipo}`;
+  }
+
+  private getMensagemSucessoApontamento(impressao: EtiquetaImpressaoResultado, mensagemApi: string): string {
+    if (impressao.printerName) {
+      return `${mensagemApi} Etiqueta enviada para ${impressao.printerName}.`;
+    }
+
+    if (impressao.usedPreview) {
+      return `${mensagemApi} Nenhuma impressora Argox encontrada. Abrindo preview da etiqueta.`;
+    }
+
+    return mensagemApi;
   }
 
   isQuantidadeTravada(ordem: OrdemProducao | OrdemIntermediaria | undefined): boolean {
@@ -468,14 +579,9 @@ export class ProducaoDetalheComponent implements OnInit {
     response: ApontamentoProducaoResponse,
     ordem: OrdemProducao | OrdemIntermediaria,
     quantidade: number,
-  ): Promise<void> {
+  ): Promise<EtiquetaImpressaoResultado> {
     if (this.isSetorGranel(ordem)) {
-      return;
-    }
-
-    const etiquetaId = String(response.etiquetaId || '').trim();
-    if (!etiquetaId) {
-      return;
+      return { success: true, usedPreview: false };
     }
 
     const agora = new Date();
@@ -508,20 +614,15 @@ export class ProducaoDetalheComponent implements OnInit {
     };
 
     const resultado = await this.producaoEtiquetaService.imprimirEtiqueta(etiqueta);
-
-    if (!resultado.success) {
-      this.poNotification.warning(resultado.error || 'Nao foi possivel abrir a impressao da etiqueta.');
-      return;
-    }
-
-    if (resultado.usedPreview) {
+    if (resultado.success && resultado.usedPreview) {
       this.poNotification.information('Nenhuma impressora Argox encontrada. Abrindo preview da etiqueta.');
-      return;
     }
 
-    if (resultado.printerName) {
+    if (resultado.success && resultado.printerName) {
       this.poNotification.success(`Etiqueta enviada para ${resultado.printerName}.`);
     }
+
+    return resultado;
   }
 
   private async imprimirEtiquetaReimpressao(
