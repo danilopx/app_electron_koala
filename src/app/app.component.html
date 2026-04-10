@@ -1,10 +1,10 @@
 <div class="app-shell">
   <ng-container *ngIf="isLogged; else loginShell">
     <app-header></app-header>
-    <div class="content">
-      <app-sidebar [menus]="menus"></app-sidebar>
-      <main class="main">
-        <div class="header" *ngIf="isLogged && pageTitle">
+    <div class="content" [class.content-full]="hideNavigation">
+      <app-sidebar *ngIf="!hideNavigation" [menus]="menus"></app-sidebar>
+      <main class="main" [class.main-full]="hideNavigation">
+        <div class="header" *ngIf="isLogged && pageTitle && !hidePageHeader">
           <div>
             <h1>{{ pageTitle }}</h1>
           </div>

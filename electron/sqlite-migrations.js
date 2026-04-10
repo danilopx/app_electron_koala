@@ -146,6 +146,30 @@ function ensureApontamentoAutomaticoExecucaoSchema(sqlite) {
   `);
 }
 
+function ensureApontamentoAutomaticoApontamentoCicloSchema(sqlite) {
+  sqlite.exec(`
+    CREATE TABLE IF NOT EXISTS apontamento_automatico_apontamento_ciclo (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      op TEXT NOT NULL,
+      empresa TEXT NOT NULL,
+      filial TEXT NOT NULL,
+      produto TEXT NOT NULL,
+      quantidade REAL NOT NULL DEFAULT 0,
+      tipo TEXT NOT NULL DEFAULT '',
+      usuario TEXT NOT NULL DEFAULT '',
+      inicio_em TEXT NOT NULL,
+      fim_em TEXT NOT NULL,
+      tempo_segundos REAL NOT NULL DEFAULT 0,
+      tempo_minutos REAL NOT NULL DEFAULT 0,
+      observacao TEXT NOT NULL DEFAULT '',
+      created_at TEXT NOT NULL DEFAULT (datetime('now'))
+    );
+
+    CREATE INDEX IF NOT EXISTS idx_apontamento_auto_ciclo_op
+    ON apontamento_automatico_apontamento_ciclo (op, created_at);
+  `);
+}
+
 function runSqliteMigrations(sqlite) {
   sqlite.transaction(() => {
     sqlite.exec(`
@@ -161,6 +185,7 @@ function runSqliteMigrations(sqlite) {
     ensureApontamentoAutomaticoContagemSchema(sqlite);
     ensureApontamentoAutomaticoOrdemSchema(sqlite);
     ensureApontamentoAutomaticoExecucaoSchema(sqlite);
+    ensureApontamentoAutomaticoApontamentoCicloSchema(sqlite);
 
     sqlite.exec(`
       CREATE INDEX IF NOT EXISTS idx_parametro_deleted ON parametro (deleted);
@@ -199,6 +224,7 @@ function runSqliteMigrations(sqlite) {
         ('PR_TNINIFIM3', '22:00-06:00', 'Horario do turno 3', ''),
         ('PR_PORTACOM', 'COM1', 'Porta para dispositivo de contagem', ''),
         ('PR_BAUDRATE', '9600', 'Baud rate da porta serial', ''),
+        ('PR_MENU_APAUTO', 'true', 'Exibe o menu de apontamento automatico', ''),
         ('PR_APFORAMULT', 'false', 'Permite apontamento fora do multiplo', '');
     `);
 

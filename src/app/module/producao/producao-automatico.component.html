@@ -3,14 +3,12 @@
     <po-container [p-no-border]="true" [p-no-padding]="true" class="po-m-2">
       <section class="automatico-shell">
         <div class="automatico-header">
-          <div>
+          <div class="automatico-header-title">
             <h2>Apontamento de Produção Automático</h2>
           </div>
           <div class="automatico-header-actions">
-            <button type="button" class="action-button secondary" (click)="alternarTesteSerial()">
-              {{ serialLendo && serialTesteManual ? 'Parar teste porta' : 'Testar porta' }}
-            </button>
-            <button type="button" class="action-button dark" (click)="abrirModalOp()">Consultar OP</button>
+            <button type="button" class="action-button secondary" (click)="sair()">Sair</button>
+            <button type="button" class="action-button dark" (click)="abrirModalOp()">Nova Ordem de Produção</button>
           </div>
         </div>
 
@@ -68,8 +66,8 @@
 
         <section class="serial-monitor">
           <div class="serial-monitor-item">
-            <span class="serial-label">Ciclo</span>
-            <strong>{{ ordem.quantidadeProduzidaAtual || 0 }}</strong>
+            <span class="serial-label">Situação</span>
+            <strong>{{ ordem.situacao }}</strong>
           </div>
           <div class="serial-monitor-item">
             <span class="serial-label">Tempo de produção</span>
@@ -87,11 +85,6 @@
 
         <div class="automatico-body">
           <section class="history-card">
-            <div class="status-line">
-              <span class="info-label">Situação:</span>
-              <strong class="status-highlight">{{ ordem.situacao }}</strong>
-            </div>
-
             <div class="history-table-wrap">
               <table class="history-table">
                 <thead>
@@ -154,7 +147,7 @@
         <ng-template #emptyState>
           <div class="automatico-empty">
             <strong *ngIf="carregandoOrdem">Carregando dados da OP...</strong>
-            <strong *ngIf="!carregandoOrdem">Informe uma OP para carregar a rotina automática ou use Testar porta para validar a leitura.</strong>
+            <strong *ngIf="!carregandoOrdem">Informe uma OP para carregar a rotina automática.</strong>
           </div>
         </ng-template>
       </section>
@@ -162,9 +155,10 @@
       <po-modal
         #opModal
         class="system-modal"
-        p-title="Informar OP"
+        p-title="Nova Ordem de Produção"
         p-click-out="false"
-        p-size="sm">
+        p-size="sm"
+        (p-close)="aoFecharModalOp()">
         <div class="automatico-modal-body">
           <div class="automatico-modal-copy">
             <strong>Informe a OP completa com 11 digitos.</strong>
@@ -188,7 +182,7 @@
         </div>
         <po-modal-footer>
           <po-button
-            p-label="Consultar"
+            p-label="Carregar OP"
             p-kind="primary"
             [p-loading]="carregandoOrdem"
             [p-disabled]="carregandoOrdem || numeroOpInformado.length !== 11"
@@ -205,7 +199,7 @@
         (p-close)="aoFecharModalAcerto()">
         <div class="automatico-modal-body">
           <div class="automatico-modal-copy">
-            <strong>Informe a quantidade correta do ciclo atual.</strong>
+            <strong>Informe a quantidade correta e o tempo produzido ate ela.</strong>
             <span *ngIf="ordem?.multiploCaixa">O valor nao pode ser maior que o multiplo da caixa.</span>
             <span *ngIf="!ordem?.multiploCaixa">O valor nao pode ser maior que a quantidade da OP ou o saldo restante.</span>
           </div>
@@ -222,6 +216,19 @@
               (keydown.enter)="salvarAcerto()"
               placeholder="0" />
           </div>
+
+          <div class="automatico-modal-field">
+            <label class="automatico-modal-label" for="acertoTempoProducao">Tempo de produção até a quantidade (minutos)</label>
+            <input
+              id="acertoTempoProducao"
+              type="text"
+              inputmode="numeric"
+              [(ngModel)]="acertoTempoProducao"
+              [disabled]="salvandoAcerto"
+              (keydown.enter)="salvarAcerto()"
+              placeholder="Ex.: 5" />
+            <span class="automatico-modal-hint">Informe somente minutos inteiros. Ex.: 5 para 5 minutos.</span>
+          </div>
         </div>
         <po-modal-footer>
           <po-button
@@ -235,6 +242,69 @@
             [p-loading]="salvandoAcerto"
             [p-disabled]="salvandoAcerto"
             (p-click)="salvarAcerto()"></po-button>
+        </po-modal-footer>
+      </po-modal>
+
+      <po-modal
+        #apontamentoStatusModal
+        class="system-modal apontamento-status-modal"
+        p-title="Status do Apontamento"
+        p-click-out="false"
+        p-size="sm"
+        [p-hide-close]="apontamentoStatusProcessando"
+        (p-close)="aoFecharStatusApontamento()">
+        <div class="apontamento-status-body" [class.is-success]="apontamentoStatusTipo === 'success'" [class.is-error]="apontamentoStatusTipo === 'error'">
+          <div class="apontamento-status-icon" aria-hidden="true">
+            <span *ngIf="apontamentoStatusProcessando" class="apontamento-status-spinner"></span>
+            <span *ngIf="!apontamentoStatusProcessando && apontamentoStatusTipo === 'success'">✓</span>
+            <span *ngIf="!apontamentoStatusProcessando && apontamentoStatusTipo === 'error'">!</span>
+          </div>
+          <div class="apontamento-status-copy">
+            <strong>{{ apontamentoStatusMensagem }}</strong>
+            <span>{{ apontamentoStatusDetalhe }}</span>
+          </div>
+        </div>
+        <po-modal-footer *ngIf="!apontamentoStatusProcessando">
+          <po-button
+            *ngIf="apontamentoStatusAcao === 'print-error'"
+            p-label="Cancelar"
+            p-kind="secondary"
+            [p-disabled]="tentandoReimprimirEtiqueta"
+            (p-click)="cancelarReimpressaoEtiqueta()"></po-button>
+          <po-button
+            *ngIf="apontamentoStatusAcao === 'print-error'"
+            p-label="Tentar novamente"
+            p-kind="primary"
+            [p-loading]="tentandoReimprimirEtiqueta"
+            [p-disabled]="tentandoReimprimirEtiqueta"
+            (p-click)="tentarReimprimirEtiqueta()"></po-button>
+          <po-button
+            *ngIf="apontamentoStatusAcao !== 'print-error'"
+            p-label="Fechar"
+            p-kind="primary"
+            (p-click)="fecharStatusApontamento()"></po-button>
+        </po-modal-footer>
+      </po-modal>
+
+      <po-modal
+        #preRequisitosModal
+        class="system-modal apontamento-status-modal"
+        p-title="Verificação do Apontamento Automático"
+        p-click-out="false"
+        p-size="sm"
+        [p-hide-close]="true">
+        <div class="apontamento-status-body is-error">
+          <div class="apontamento-status-icon" aria-hidden="true">!</div>
+          <div class="apontamento-status-copy">
+            <strong>{{ preRequisitosMensagem }}</strong>
+            <span>{{ preRequisitosDetalhe }}</span>
+          </div>
+        </div>
+        <po-modal-footer>
+          <po-button
+            p-label="Fechar"
+            p-kind="primary"
+            (p-click)="fecharPreRequisitos()"></po-button>
         </po-modal-footer>
       </po-modal>
     </po-container>

@@ -190,7 +190,7 @@ export class HomeComponent {
       });
     }
 
-    if (environment.apAuto) {
+    if (environment.apAuto && environment.apAutoMenu) {
       quickAccess.push({
         titulo: 'Produção Automático',
         descricao: 'Acesse o fluxo automático de apontamento e impressão.',

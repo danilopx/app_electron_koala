@@ -14,6 +14,10 @@
   height: calc(100vh - 50px - 43px);
 }
 
+.content.content-full {
+  grid-template-columns: 1fr;
+}
+
 .main {
   padding: 10px 10px 10px;
   min-width: 0;
@@ -22,6 +26,10 @@
   display: flex;
   flex-direction: column;
   min-height: 104%;
+}
+
+.main.main-full {
+  grid-column: 1;
 }
 
 .main .header {

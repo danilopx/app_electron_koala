@@ -1562,6 +1562,56 @@ ipcMain.handle('sqlite:apontamento-auto-ordem:adjust-quant-par', async (_event, 
   }
 });
 
+ipcMain.handle('sqlite:apontamento-auto-ciclo:registrar', async (_event, payload = {}) => {
+  try {
+    const op = String(payload?.op || '').trim();
+    const empresa = String(payload?.empresa || '').trim();
+    const filial = String(payload?.filial || '').trim();
+    const produto = String(payload?.produto || '').trim();
+    const quantidade = Number(payload?.quantidade || 0);
+    const tipo = String(payload?.tipo || '').trim();
+    const usuario = String(payload?.usuario || '').trim();
+    const inicioEm = String(payload?.inicioEm || '').trim();
+    const fimEm = String(payload?.fimEm || '').trim();
+    const tempoSegundos = Number(payload?.tempoSegundos || 0);
+    const tempoMinutos = Number(payload?.tempoMinutos || 0);
+    const observacao = String(payload?.observacao || '').trim();
+
+    if (!op || !empresa || !filial || !produto || !inicioEm || !fimEm || !(quantidade > 0)) {
+      throw new Error('Dados invalidos para registrar ciclo do apontamento automatico.');
+    }
+
+    return {
+      success: true,
+      ...sqlite.run(
+        `
+          INSERT INTO apontamento_automatico_apontamento_ciclo (
+            op,
+            empresa,
+            filial,
+            produto,
+            quantidade,
+            tipo,
+            usuario,
+            inicio_em,
+            fim_em,
+            tempo_segundos,
+            tempo_minutos,
+            observacao
+          )
+          VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+        `,
+        [op, empresa, filial, produto, quantidade, tipo, usuario, inicioEm, fimEm, tempoSegundos, tempoMinutos, observacao],
+      ),
+    };
+  } catch (error) {
+    return {
+      success: false,
+      error: error instanceof Error ? error.message : 'Falha ao registrar ciclo do apontamento automatico.',
+    };
+  }
+});
+
 app.whenReady().then(async () => {
   await createWindow();
   loadAutoExecutionSession();

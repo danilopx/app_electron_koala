@@ -50,6 +50,9 @@ export const environment = {
   get apAuto(): boolean {
     return RuntimeConfigStore.getBoolean('apAuto', DEFAULT_SYSTEM_CONFIG.apAuto);
   },
+  get apAutoMenu(): boolean {
+    return RuntimeConfigStore.getBoolean('apAutoMenu', DEFAULT_SYSTEM_CONFIG.apAutoMenu);
+  },
   get apForaMultiplo(): boolean {
     return RuntimeConfigStore.getBoolean('apForaMultiplo', DEFAULT_SYSTEM_CONFIG.apForaMultiplo);
   },

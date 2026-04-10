@@ -11,6 +11,7 @@ export interface SystemConfigValues {
   processo: string;
   apManual: boolean;
   apAuto: boolean;
+  apAutoMenu: boolean;
   apForaMultiplo: boolean;
 }
 
@@ -50,6 +51,7 @@ export const OPTIONAL_SYSTEM_CONFIG_PARAMS: SystemConfigParamDefinition[] = [
   { parametro: 'PR_PROCESSO', field: 'processo', descricao: 'Processo' },
   { parametro: 'PR_APMANUAL', field: 'apManual', descricao: 'Habilita a rotina de apontamento manual' },
   { parametro: 'PR_APAUTO', field: 'apAuto', descricao: 'Habilita a rotina de apontamento automatico' },
+  { parametro: 'PR_MENU_APAUTO', field: 'apAutoMenu', descricao: 'Exibe o menu de apontamento automatico' },
   { parametro: 'PR_APFORAMULT', field: 'apForaMultiplo', descricao: 'Permite apontamento fora do multiplo' },
 ];
 
@@ -66,6 +68,7 @@ export const DEFAULT_SYSTEM_CONFIG: SystemConfigValues = {
   processo: '',
   apManual: true,
   apAuto: true,
+  apAutoMenu: true,
   apForaMultiplo: false,
 };
 
@@ -91,12 +94,12 @@ export class RuntimeConfigStore {
     };
   }
 
-  static getString(key: Exclude<keyof SystemConfigValues, 'production' | 'apManual' | 'apAuto' | 'apForaMultiplo'>): string {
+  static getString(key: Exclude<keyof SystemConfigValues, 'production' | 'apManual' | 'apAuto' | 'apAutoMenu' | 'apForaMultiplo'>): string {
     const value = this.values[key];
     return typeof value === 'string' ? value : '';
   }
 
-  static getBoolean(key: 'production' | 'apManual' | 'apAuto' | 'apForaMultiplo', fallback = false): boolean {
+  static getBoolean(key: 'production' | 'apManual' | 'apAuto' | 'apAutoMenu' | 'apForaMultiplo', fallback = false): boolean {
     const value = this.values[key];
     return typeof value === 'boolean' ? value : fallback;
   }
@@ -143,6 +146,7 @@ export function mapParametrosToSystemConfig(parametros: Array<{ parametro: strin
       definition.field === 'production'
       || definition.field === 'apManual'
       || definition.field === 'apAuto'
+      || definition.field === 'apAutoMenu'
       || definition.field === 'apForaMultiplo'
     ) {
       config[definition.field] = String(item.valor).trim().toLowerCase() === 'true' as any;

@@ -1,5 +1,7 @@
 import { AfterViewInit, Component, NgZone, OnDestroy, OnInit, ViewChild } from '@angular/core';
+import { Router } from '@angular/router';
 import { PoModalComponent, PoNotificationService } from '@po-ui/ng-components';
+import { firstValueFrom } from 'rxjs';
 import { EtiquetaImpressaoDados, ProducaoEtiquetaService } from '../../service/producao-etiqueta.service';
 import { SidebarStateService } from '../../service/sidebar-state.service';
 import { environment } from '../../../environments/environment';
@@ -69,12 +71,20 @@ interface ProducaoAutomaticaPersistencia {
 export class ProducaoAutomaticoComponent implements OnInit, AfterViewInit, OnDestroy {
   @ViewChild('opModal', { static: false }) opModal!: PoModalComponent;
   @ViewChild('acertoModal', { static: false }) acertoModal!: PoModalComponent;
+  @ViewChild('apontamentoStatusModal', { static: false }) apontamentoStatusModal!: PoModalComponent;
+  @ViewChild('preRequisitosModal', { static: false }) preRequisitosModal!: PoModalComponent;
 
   private previousSidebarCollapsed: boolean | null = null;
   private removeSerialDataListener?: () => void;
   private removeSerialErrorListener?: () => void;
   private removeAutoExecutionUpdateListener?: () => void;
   private reconnectTimer: ReturnType<typeof setTimeout> | null = null;
+  private tempoProducaoTimer: ReturnType<typeof setInterval> | null = null;
+  private tempoProducaoBaseMinutos = 0;
+  private tempoProducaoInicioSessaoMs: number | null = null;
+  private cicloApontamentoInicioMs: number | null = null;
+  tempoProducaoTickMs = Date.now();
+  private ignorarFechamentoModalOp = false;
   historico: ProducaoAutomaticaHistorico[] = [];
   ordem?: ProducaoAutomaticaOrdem;
   ordemDetalhe?: OrdemProducaoDetalhe;
@@ -94,8 +104,19 @@ export class ProducaoAutomaticoComponent implements OnInit, AfterViewInit, OnDes
   screenMessageType: 'error' | 'info' | 'success' = 'info';
   private lastToastKey = '';
   acertoQuantidade = '';
+  acertoTempoProducao = '';
   salvandoAcerto = false;
   acertoExecucaoPausada = false;
+  apontamentoStatusMensagem = '';
+  apontamentoStatusDetalhe = '';
+  apontamentoStatusTipo: 'info' | 'success' | 'error' = 'info';
+  apontamentoStatusProcessando = false;
+  apontamentoStatusAcao: 'none' | 'processing' | 'api-error' | 'print-error' | 'support' = 'none';
+  tentandoReimprimirEtiqueta = false;
+  preRequisitosMensagem = '';
+  preRequisitosDetalhe = '';
+  validandoPreRequisitos = false;
+  private fechandoStatusAutomaticamente = false;
 
   constructor(
     private ngZone: NgZone,
@@ -103,6 +124,7 @@ export class ProducaoAutomaticoComponent implements OnInit, AfterViewInit, OnDes
     private producaoService: ProducaoService,
     private producaoEtiquetaService: ProducaoEtiquetaService,
     private sidebarStateService: SidebarStateService,
+    private router: Router,
   ) {}
 
   ngOnInit(): void {
@@ -118,14 +140,19 @@ export class ProducaoAutomaticoComponent implements OnInit, AfterViewInit, OnDes
   }
 
   ngAfterViewInit(): void {
-    setTimeout(() => this.abrirModalOp(), 0);
+    setTimeout(() => {
+      void this.validarPreRequisitos();
+    }, 0);
   }
 
   ngOnDestroy(): void {
+    this.consolidarTempoProducaoSessao();
+    void this.persistAutomaticOrderState('', false);
     this.removeSerialDataListener?.();
     this.removeSerialErrorListener?.();
     this.removeAutoExecutionUpdateListener?.();
     this.clearReconnectTimer();
+    this.pararRelogioTempoProducao();
 
     if (this.previousSidebarCollapsed !== null) {
       this.sidebarStateService.setCollapsed(this.previousSidebarCollapsed);
@@ -136,6 +163,11 @@ export class ProducaoAutomaticoComponent implements OnInit, AfterViewInit, OnDes
     if (this.opModal) {
       this.opModal.open();
     }
+  }
+
+  fecharPreRequisitos(): void {
+    this.preRequisitosModal?.close();
+    this.sair();
   }
 
   consultarOp(): void {
@@ -158,7 +190,11 @@ export class ProducaoAutomaticoComponent implements OnInit, AfterViewInit, OnDes
         this.ordem = this.mapOrdemTela(detalhe);
         this.historico = this.mapHistoricoLista(detalhe);
         this.carregandoOrdem = false;
+        this.ignorarFechamentoModalOp = true;
         this.opModal.close();
+        setTimeout(() => {
+          this.ignorarFechamentoModalOp = false;
+        }, 0);
         this.clearScreenMessage();
         void this.restoreOrCreatePersistedOrderState();
         void this.activateAutomaticExecution();
@@ -185,8 +221,23 @@ export class ProducaoAutomaticoComponent implements OnInit, AfterViewInit, OnDes
     void this.tryManualApontamento();
   }
 
+  async sair(): Promise<void> {
+    this.consolidarTempoProducaoSessao();
+    await this.persistAutomaticOrderState('', false);
+    this.stopSerialReading(false);
+    this.router.navigate(['/home']);
+  }
+
   fecharModalAcerto(): void {
     this.acertoModal?.close();
+  }
+
+  aoFecharModalOp(): void {
+    if (this.ignorarFechamentoModalOp) {
+      return;
+    }
+
+    this.sair();
   }
 
   aoFecharModalAcerto(): void {
@@ -208,6 +259,12 @@ export class ProducaoAutomaticoComponent implements OnInit, AfterViewInit, OnDes
     const limite = this.getLimiteQuantidadeAcerto();
     if (quantidade > limite) {
       this.setScreenMessage(`A quantidade informada nao pode ser maior que ${limite}.`, 'error');
+      return;
+    }
+
+    const tempoAcertoMinutos = this.parseTempoAcertoMinutos(this.acertoTempoProducao);
+    if (tempoAcertoMinutos === null) {
+      this.setScreenMessage('Informe o tempo de producao em minutos.', 'error');
       return;
     }
 
@@ -237,11 +294,12 @@ export class ProducaoAutomaticoComponent implements OnInit, AfterViewInit, OnDes
         dataHora: String(result.row.dataHora || ''),
         dataUltPc: String(result.row.dataUltPc || ''),
         cicloMedio: Number(result.row.cicloMedio || 0),
-        tempo: Number(result.row.tempo || 0),
+        tempo: tempoAcertoMinutos,
         totalProd: Number(result.row.totalProd || 0),
         tempoPrev: Number(result.row.tempoPrev || 0),
         perda: Number(result.row.perda || 0),
       };
+      this.aplicarTempoAcertoAoCiclo(tempoAcertoMinutos, this.autoPersistencia.quantPar);
       this.contadorPulso = this.autoPersistencia.quantPar;
 
       if (this.ordem) {
@@ -292,8 +350,7 @@ export class ProducaoAutomaticoComponent implements OnInit, AfterViewInit, OnDes
       return;
     }
 
-    const etiqueta = this.getEtiquetaDados();
-    const resultado = await this.producaoEtiquetaService.imprimirEtiqueta(etiqueta);
+    const resultado = await this.imprimirEtiquetaAtual();
 
     if (!resultado.success) {
       this.poNotification.warning(resultado.error || 'Nao foi possivel abrir a impressao da etiqueta.');
@@ -530,12 +587,14 @@ export class ProducaoAutomaticoComponent implements OnInit, AfterViewInit, OnDes
             quantPar: Number(payload.quantPar || 0),
             totalProd: Number(payload.totalProd || 0),
             cicloMedio: Number(payload.cicloMedio || 0),
-            tempo: Number(payload.tempo || 0),
+            tempo: this.getTempoProducaoAtualMinutos(),
             tempoPrev: Number(payload.tempoPrev || 0),
             dataUltPc: String(payload.dataUltPc || ''),
           };
         }
 
+        this.iniciarRelogioTempoProducao();
+        this.iniciarCicloApontamentoSeNecessario();
         void this.tryAutoApontamento();
       });
     });
@@ -543,6 +602,9 @@ export class ProducaoAutomaticoComponent implements OnInit, AfterViewInit, OnDes
 
   private async syncSerialByOrderStatus(): Promise<void> {
     if (!this.ordemDetalhe?.ordem || !this.isSerialEnabledForOrderStatus(this.ordemDetalhe.ordem.op_status)) {
+      this.consolidarTempoProducaoSessao();
+      await this.persistAutomaticOrderState('', false);
+      this.pararRelogioTempoProducao();
       this.serialStatus = 'Leitura serial desabilitada para OP fechada.';
       this.setScreenMessage(this.serialStatus, 'info');
       return;
@@ -617,6 +679,7 @@ export class ProducaoAutomaticoComponent implements OnInit, AfterViewInit, OnDes
     }
 
     this.acertoQuantidade = String(Math.max(0, Math.trunc(Number(this.contadorPulso || 0))));
+    this.acertoTempoProducao = this.formatDecimalMinutes(this.getTempoProducaoAtualMinutos());
     await this.pausarExecucaoParaAcerto();
     if (window.electronAPI?.serial?.autoExecPause && !this.acertoExecucaoPausada) {
       return;
@@ -684,6 +747,9 @@ export class ProducaoAutomaticoComponent implements OnInit, AfterViewInit, OnDes
       return;
     }
 
+    this.consolidarTempoProducaoSessao();
+    await this.persistAutomaticOrderState('', false);
+    this.pararRelogioTempoProducao();
     this.serialStatus = 'OP finalizada. Saldo restante zerado.';
     this.setScreenMessage('OP finalizada. Saldo restante zerado. Nenhuma outra acao esta disponivel para esta ordem.', 'info');
 
@@ -697,7 +763,7 @@ export class ProducaoAutomaticoComponent implements OnInit, AfterViewInit, OnDes
   }
 
   private async tryAutoApontamento(): Promise<void> {
-    if (!this.ordem || !this.ordemDetalhe?.ordem || this.apontandoAutomatico) {
+    if (!this.ordem || !this.ordemDetalhe?.ordem || this.apontandoAutomatico || this.apontamentoStatusAcao !== 'none') {
       return;
     }
 
@@ -713,7 +779,7 @@ export class ProducaoAutomaticoComponent implements OnInit, AfterViewInit, OnDes
       return;
     }
 
-    await this.executarApontamento(meta, 'Apontamento automatico por sinal serial.', 'Apontamento automatico realizado.');
+    await this.executarApontamento(meta, 'Apontamento automatico por sinal serial.', 'Apontamento automatico realizado.', 'automatico');
   }
 
   get exibirBotaoApontamentoManual(): boolean {
@@ -751,7 +817,8 @@ export class ProducaoAutomaticoComponent implements OnInit, AfterViewInit, OnDes
     await this.executarApontamento(
       quantidadeApontamento,
       'Apontamento manual acionado na rotina automatica.',
-      'Apontamento realizado.'
+      'Apontamento realizado.',
+      'manual'
     );
   }
 
@@ -759,6 +826,7 @@ export class ProducaoAutomaticoComponent implements OnInit, AfterViewInit, OnDes
     quantidadeApontamento: number,
     observacao: string,
     mensagemSucesso: string,
+    tipo: 'automatico' | 'manual',
   ): Promise<void> {
     if (!this.ordem || !this.ordemDetalhe?.ordem || this.apontandoAutomatico) {
       return;
@@ -794,29 +862,239 @@ export class ProducaoAutomaticoComponent implements OnInit, AfterViewInit, OnDes
 
     this.apontandoAutomatico = true;
     this.serialStatus = 'Realizando apontamento...';
+    this.abrirStatusApontamento('Realizando apontamento...', 'Enviando apontamento para o Protheus.', 'info');
+    const fimCicloApontamentoMs = Date.now();
 
-    this.producaoService.apontarProducao(payload).subscribe({
-      next: async (response) => {
-        this.apontandoAutomatico = false;
+    try {
+      const response = await firstValueFrom(this.producaoService.apontarProducao(payload));
+      this.apontandoAutomatico = false;
 
-        if (String(response.status || '').trim().toLowerCase() === 'error') {
-          this.serialStatus = response.msg || 'Falha no apontamento.';
-          this.setScreenMessage(this.serialStatus, 'error');
-          return;
-        }
+      if (String(response.status || '').trim().toLowerCase() === 'error') {
+        this.serialStatus = response.msg || 'Falha no apontamento.';
+        this.atualizarStatusApontamento(this.serialStatus, 'O processo foi interrompido. Feche esta mensagem para voltar à Home.', 'error', false, 'api-error');
+        this.setScreenMessage(this.serialStatus, 'error');
+        return;
+      }
 
-        this.poNotification.success(response.backendMsg || response.msg || mensagemSucesso);
-        this.clearScreenMessage();
-        this.resetAutomaticCounter();
-        void this.persistAutomaticOrderState('', true);
-        await this.reloadCurrentOrderDetail();
-      },
-      error: () => {
-        this.apontandoAutomatico = false;
-        this.serialStatus = 'Falha no apontamento.';
-        this.setScreenMessage('Nao foi possivel realizar o apontamento.', 'error');
-      },
-    });
+      this.atualizarStatusApontamento(response.backendMsg || response.msg || mensagemSucesso, 'Apontamento confirmado. Imprimindo etiqueta...', 'success');
+      await this.registrarTempoCicloApontamento(quantidadeApontamento, tipo, observacao, fimCicloApontamentoMs);
+
+      const resultadoImpressao = await this.imprimirEtiquetaAtual();
+      if (!resultadoImpressao.success) {
+        this.atualizarStatusApontamento(
+          'Apontamento realizado, mas a etiqueta não foi impressa.',
+          resultadoImpressao.error || 'Verifique a impressora e tente novamente.',
+          'error',
+          false,
+          'print-error',
+        );
+        return;
+      }
+
+      await this.finalizarApontamentoAposImpressao(resultadoImpressao);
+    } catch {
+      this.apontandoAutomatico = false;
+      this.serialStatus = 'Falha no apontamento.';
+      this.atualizarStatusApontamento('Não foi possível realizar o apontamento.', 'O processo foi interrompido. Feche esta mensagem para voltar à Home.', 'error', false, 'api-error');
+      this.setScreenMessage('Nao foi possivel realizar o apontamento.', 'error');
+    }
+  }
+
+  fecharStatusApontamento(): void {
+    if (this.apontamentoStatusAcao === 'api-error' || this.apontamentoStatusAcao === 'support') {
+      this.fechandoStatusAutomaticamente = true;
+      this.apontamentoStatusProcessando = false;
+      this.apontamentoStatusAcao = 'none';
+      this.apontamentoStatusModal?.close();
+      this.sair();
+      return;
+    }
+
+    this.apontamentoStatusProcessando = false;
+    this.apontamentoStatusAcao = 'none';
+    this.apontamentoStatusModal?.close();
+  }
+
+  async tentarReimprimirEtiqueta(): Promise<void> {
+    if (this.tentandoReimprimirEtiqueta || this.apontamentoStatusAcao !== 'print-error') {
+      return;
+    }
+
+    this.tentandoReimprimirEtiqueta = true;
+    this.atualizarStatusApontamento('Tentando imprimir novamente...', 'Enviando etiqueta para a impressora.', 'info', true, 'processing');
+
+    try {
+      const resultadoImpressao = await this.imprimirEtiquetaAtual();
+      if (!resultadoImpressao.success) {
+        this.atualizarStatusApontamento(
+          'A etiqueta não foi impressa.',
+          resultadoImpressao.error || 'Verifique a impressora e tente novamente.',
+          'error',
+          false,
+          'print-error',
+        );
+        return;
+      }
+
+      await this.finalizarApontamentoAposImpressao(resultadoImpressao);
+    } finally {
+      this.tentandoReimprimirEtiqueta = false;
+    }
+  }
+
+  cancelarReimpressaoEtiqueta(): void {
+    this.atualizarStatusApontamento(
+      'Impressão cancelada.',
+      'Informar ao Suporte para verificar o problema da impressora.',
+      'error',
+      false,
+      'support',
+    );
+  }
+
+  aoFecharStatusApontamento(): void {
+    if (this.fechandoStatusAutomaticamente) {
+      this.fechandoStatusAutomaticamente = false;
+      return;
+    }
+
+    if (this.apontamentoStatusAcao === 'api-error' || this.apontamentoStatusAcao === 'support') {
+      this.fecharStatusApontamento();
+      return;
+    }
+
+    if (this.apontamentoStatusAcao === 'print-error') {
+      this.cancelarReimpressaoEtiqueta();
+    }
+  }
+
+  private abrirStatusApontamento(
+    mensagem: string,
+    detalhe: string,
+    tipo: 'info' | 'success' | 'error',
+  ): void {
+    this.atualizarStatusApontamento(mensagem, detalhe, tipo, true, 'processing');
+    this.apontamentoStatusModal?.open();
+  }
+
+  private atualizarStatusApontamento(
+    mensagem: string,
+    detalhe: string,
+    tipo: 'info' | 'success' | 'error',
+    processando = true,
+    acao: 'none' | 'processing' | 'api-error' | 'print-error' | 'support' = processando ? 'processing' : 'none',
+  ): void {
+    this.apontamentoStatusMensagem = mensagem;
+    this.apontamentoStatusDetalhe = detalhe;
+    this.apontamentoStatusTipo = tipo;
+    this.apontamentoStatusProcessando = processando;
+    this.apontamentoStatusAcao = acao;
+  }
+
+  private async imprimirEtiquetaAtual() {
+    const etiqueta = this.getEtiquetaDados();
+    return this.producaoEtiquetaService.imprimirEtiqueta(etiqueta);
+  }
+
+  private async validarPreRequisitos(): Promise<void> {
+    if (this.validandoPreRequisitos) {
+      return;
+    }
+
+    this.validandoPreRequisitos = true;
+
+    try {
+      const problemaComunicacao = await this.validarComunicacaoDispositivo();
+      if (problemaComunicacao) {
+        this.bloquearTelaPorPreRequisito('Problema na comunicação com o dispositivo.', problemaComunicacao);
+        return;
+      }
+
+      const problemaImpressora = await this.validarImpressoraArgox();
+      if (problemaImpressora) {
+        this.bloquearTelaPorPreRequisito('Problema na impressora.', problemaImpressora);
+        return;
+      }
+
+      this.abrirModalOp();
+    } finally {
+      this.validandoPreRequisitos = false;
+    }
+  }
+
+  private async validarComunicacaoDispositivo(): Promise<string> {
+    if (!window.electronAPI?.isDesktop || !window.electronAPI.serial?.startReading) {
+      return 'A comunicação automática está disponível apenas no aplicativo desktop.';
+    }
+
+    try {
+      const result = await window.electronAPI.serial.startReading();
+      if (!result.success) {
+        return result.error || 'Não foi possível iniciar a comunicação com a porta configurada.';
+      }
+
+      this.serialLendo = true;
+      this.serialTesteManual = false;
+      this.serialPorta = result.port || '';
+      this.serialUltimoValor = result.lastValue || this.serialUltimoValor;
+      this.serialStatus = `Leitura ativa na porta ${result.port || result.path || '-'}.`;
+      return '';
+    } catch (error) {
+      return error instanceof Error ? error.message : 'Falha ao validar a comunicação com o dispositivo.';
+    }
+  }
+
+  private async validarImpressoraArgox(): Promise<string> {
+    if (!window.electronAPI?.isDesktop || !window.electronAPI.getPrinters) {
+      return 'A validação da impressora está disponível apenas no aplicativo desktop.';
+    }
+
+    try {
+      const printers = await window.electronAPI.getPrinters();
+      const argoxPrinter = printers.find((printer) => {
+        const searchable = [printer.name, printer.displayName, printer.description]
+          .filter(Boolean)
+          .join(' ')
+          .toUpperCase();
+
+        return (
+          searchable.includes('ARGOX') ||
+          searchable.includes('OS214') ||
+          searchable.includes('OS-214') ||
+          searchable.includes('OS 214') ||
+          searchable.includes('PPLA')
+        );
+      });
+
+      return argoxPrinter?.name ? '' : 'Impressora Argox OS214 Plus não encontrada. Verifique se a impressora está instalada e disponível no Windows.';
+    } catch (error) {
+      return error instanceof Error ? error.message : 'Não foi possível consultar as impressoras instaladas.';
+    }
+  }
+
+  private bloquearTelaPorPreRequisito(mensagem: string, detalhe: string): void {
+    this.preRequisitosMensagem = mensagem;
+    this.preRequisitosDetalhe = detalhe;
+    this.preRequisitosModal?.open();
+  }
+
+  private async finalizarApontamentoAposImpressao(resultadoImpressao: { success: boolean; printerName?: string; usedPreview?: boolean }): Promise<void> {
+    this.atualizarStatusApontamento(
+      'Etiqueta impressa.',
+      resultadoImpressao.usedPreview
+        ? 'Preview de impressão aberto. Reiniciando processo...'
+        : `Etiqueta enviada para ${resultadoImpressao.printerName || 'a impressora'}. Reiniciando processo...`,
+      'success',
+      true,
+      'processing',
+    );
+
+    this.clearScreenMessage();
+    this.resetAutomaticCounter();
+    await this.persistAutomaticOrderState('', true);
+    await this.reloadCurrentOrderDetail();
+    this.fechandoStatusAutomaticamente = true;
+    this.fecharStatusApontamento();
   }
 
   private async reloadCurrentOrderDetail(): Promise<void> {
@@ -867,6 +1145,9 @@ export class ProducaoAutomaticoComponent implements OnInit, AfterViewInit, OnDes
   }
 
   private resetAutomaticCounter(): void {
+    this.consolidarTempoProducaoSessao();
+    this.pararRelogioTempoProducao();
+    this.cicloApontamentoInicioMs = null;
     this.contadorPulso = 0;
 
     if (this.ordem) {
@@ -907,12 +1188,25 @@ export class ProducaoAutomaticoComponent implements OnInit, AfterViewInit, OnDes
       perda: Number(existente?.perda || 0),
     };
 
+    this.tempoProducaoBaseMinutos = Number(this.autoPersistencia.tempo || 0);
+    this.tempoProducaoInicioSessaoMs = null;
+    this.cicloApontamentoInicioMs = this.autoPersistencia.quantPar > 0 && this.isSerialEnabledForOrderStatus(this.ordemDetalhe.ordem.op_status)
+      ? Date.now()
+      : null;
+    this.pararRelogioTempoProducao();
     this.contadorPulso = this.autoPersistencia.quantPar;
     this.ordem = {
       ...this.ordem,
       quantidadeProduzidaAtual: this.contadorPulso,
     };
 
+    if (
+      this.isSerialEnabledForOrderStatus(this.ordemDetalhe.ordem.op_status)
+      && !this.isOrdemBloqueadaParaAcao()
+      && (this.tempoProducaoBaseMinutos > 0 || this.contadorPulso > 0 || !!this.autoPersistencia.dataUltPc)
+    ) {
+      this.iniciarRelogioTempoProducao();
+    }
   }
 
   private async persistAutomaticOrderState(rawValue: string, resetQuantPar: boolean = false): Promise<void> {
@@ -930,7 +1224,7 @@ export class ProducaoAutomaticoComponent implements OnInit, AfterViewInit, OnDes
       dataHora: this.autoPersistencia?.dataHora || new Date().toISOString(),
       dataUltPc: this.autoPersistencia?.dataUltPc || '',
       cicloMedio: Number(this.autoPersistencia?.cicloMedio || 0),
-      tempo: Number(this.autoPersistencia?.tempo || 0),
+      tempo: this.getTempoProducaoAtualMinutos(),
       totalProd: Number(this.autoPersistencia?.totalProd || 0),
       tempoPrev: Number(this.autoPersistencia?.tempoPrev || 0),
       perda: Number(this.autoPersistencia?.perda || 0),
@@ -967,7 +1261,8 @@ export class ProducaoAutomaticoComponent implements OnInit, AfterViewInit, OnDes
   }
 
   get tempoProducaoLabel(): string {
-    return this.formatMinutes(this.autoPersistencia?.tempo || 0);
+    void this.tempoProducaoTickMs;
+    return this.formatMinutes(this.getTempoProducaoAtualMinutos());
   }
 
   get cicloMedioLabel(): string {
@@ -1011,6 +1306,141 @@ export class ProducaoAutomaticoComponent implements OnInit, AfterViewInit, OnDes
     this.screenMessage = '';
   }
 
+  private iniciarRelogioTempoProducao(): void {
+    if (this.tempoProducaoInicioSessaoMs !== null || !this.ordemDetalhe?.ordem) {
+      return;
+    }
+
+    if (!this.isSerialEnabledForOrderStatus(this.ordemDetalhe.ordem.op_status) || this.isOrdemBloqueadaParaAcao()) {
+      return;
+    }
+
+    this.tempoProducaoInicioSessaoMs = Date.now();
+    this.tempoProducaoTickMs = this.tempoProducaoInicioSessaoMs;
+
+    if (!this.tempoProducaoTimer) {
+      this.tempoProducaoTimer = setInterval(() => {
+        this.tempoProducaoTickMs = Date.now();
+      }, 1000);
+    }
+  }
+
+  private iniciarCicloApontamentoSeNecessario(): void {
+    if (this.cicloApontamentoInicioMs !== null || !this.ordemDetalhe?.ordem) {
+      return;
+    }
+
+    if (!this.isSerialEnabledForOrderStatus(this.ordemDetalhe.ordem.op_status) || this.isOrdemBloqueadaParaAcao()) {
+      return;
+    }
+
+    this.cicloApontamentoInicioMs = Date.now();
+  }
+
+  private aplicarTempoAcertoAoCiclo(tempoMinutos: number, quantidade: number): void {
+    const tempoNormalizado = Math.max(0, Number(tempoMinutos || 0));
+    this.tempoProducaoBaseMinutos = tempoNormalizado;
+    this.tempoProducaoInicioSessaoMs = Date.now();
+    this.tempoProducaoTickMs = this.tempoProducaoInicioSessaoMs;
+
+    if (quantidade > 0) {
+      this.cicloApontamentoInicioMs = this.tempoProducaoInicioSessaoMs - (tempoNormalizado * 60000);
+    } else {
+      this.cicloApontamentoInicioMs = null;
+    }
+
+    if (!this.tempoProducaoTimer) {
+      this.tempoProducaoTimer = setInterval(() => {
+        this.tempoProducaoTickMs = Date.now();
+      }, 1000);
+    }
+  }
+
+  private parseTempoAcertoMinutos(value: string): number | null {
+    const normalized = String(value || '').trim();
+    if (!normalized) {
+      return 0;
+    }
+
+    if (/^\d+$/.test(normalized)) {
+      return Number(normalized);
+    }
+
+    return null;
+  }
+
+  private async registrarTempoCicloApontamento(
+    quantidadeApontamento: number,
+    tipo: 'automatico' | 'manual',
+    observacao: string,
+    fimMs: number,
+  ): Promise<void> {
+    if (!window.electronAPI?.sqlite?.apontamentoAutomatico?.registrarCicloApontamento || !this.ordem || !this.ordemDetalhe?.ordem) {
+      return;
+    }
+
+    const inicioMs = this.cicloApontamentoInicioMs ?? this.tempoProducaoInicioSessaoMs ?? fimMs;
+    const tempoSegundos = Math.max(0, (fimMs - inicioMs) / 1000);
+    const ordem = this.ordemDetalhe.ordem;
+
+    const result = await window.electronAPI.sqlite.apontamentoAutomatico.registrarCicloApontamento({
+      op: this.ordem.productionOrder,
+      empresa: environment.grupo || '',
+      filial: ordem.op_filial || environment.filial || '',
+      produto: ordem.op_produto || ordem.produto_codigo,
+      quantidade: quantidadeApontamento,
+      tipo,
+      usuario: this.usuarioLogado,
+      inicioEm: new Date(inicioMs).toISOString(),
+      fimEm: new Date(fimMs).toISOString(),
+      tempoSegundos,
+      tempoMinutos: tempoSegundos / 60,
+      observacao,
+    });
+
+    if (!result.success) {
+      this.setScreenMessage(result.error || 'Falha ao registrar tempo de ciclo do apontamento.', 'error');
+    }
+  }
+
+  private consolidarTempoProducaoSessao(): void {
+    if (this.tempoProducaoInicioSessaoMs === null) {
+      if (this.autoPersistencia) {
+        this.autoPersistencia = {
+          ...this.autoPersistencia,
+          tempo: this.tempoProducaoBaseMinutos,
+        };
+      }
+      return;
+    }
+
+    this.tempoProducaoBaseMinutos = this.getTempoProducaoAtualMinutos();
+    this.tempoProducaoInicioSessaoMs = null;
+    this.tempoProducaoTickMs = Date.now();
+
+    if (this.autoPersistencia) {
+      this.autoPersistencia = {
+        ...this.autoPersistencia,
+        tempo: this.tempoProducaoBaseMinutos,
+      };
+    }
+  }
+
+  private pararRelogioTempoProducao(): void {
+    if (this.tempoProducaoTimer) {
+      clearInterval(this.tempoProducaoTimer);
+      this.tempoProducaoTimer = null;
+    }
+  }
+
+  private getTempoProducaoAtualMinutos(): number {
+    if (this.tempoProducaoInicioSessaoMs === null) {
+      return Math.max(0, Number(this.tempoProducaoBaseMinutos || this.autoPersistencia?.tempo || 0));
+    }
+
+    return Math.max(0, Number(this.tempoProducaoBaseMinutos || 0) + ((Date.now() - this.tempoProducaoInicioSessaoMs) / 60000));
+  }
+
   private formatSeconds(value: number): string {
     const totalSeconds = Math.max(0, Math.round(Number(value || 0)));
     const minutes = Math.floor(totalSeconds / 60);
@@ -1024,6 +1454,11 @@ export class ProducaoAutomaticoComponent implements OnInit, AfterViewInit, OnDes
     const minutes = Math.floor((totalSeconds % 3600) / 60);
     const seconds = totalSeconds % 60;
     return `${String(hours).padStart(2, '0')}:${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`;
+  }
+
+  private formatDecimalMinutes(value: number): string {
+    const minutes = Math.max(0, Math.round(Number(value || 0)));
+    return String(minutes);
   }
 
   private isSerialAccessDeniedMessage(message: string): boolean {

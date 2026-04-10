@@ -42,6 +42,7 @@ contextBridge.exposeInMainWorld('electronAPI', {
       getOrdemByOp: (op) => ipcRenderer.invoke('sqlite:apontamento-auto-ordem:get-by-op', { op }),
       upsertOrdem: (payload) => ipcRenderer.invoke('sqlite:apontamento-auto-ordem:upsert', payload),
       adjustQuantPar: (payload) => ipcRenderer.invoke('sqlite:apontamento-auto-ordem:adjust-quant-par', payload),
+      registrarCicloApontamento: (payload) => ipcRenderer.invoke('sqlite:apontamento-auto-ciclo:registrar', payload),
     },
     parametros: {
       list: () => ipcRenderer.invoke('sqlite:parametros:list'),

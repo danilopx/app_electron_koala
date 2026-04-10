@@ -23,6 +23,8 @@ export class AppComponent implements OnInit {
   desktopVersion = '';
   showSupportModal = false;
   showBack = false;
+  hideNavigation = false;
+  hidePageHeader = false;
   breadcrumb = '';
   pageTitle = '';
   supportForm = {
@@ -136,6 +138,9 @@ export class AppComponent implements OnInit {
   private updateBackVisibility(url: string): void {
     const semQuery = url.split('?')[0] || '';
     const cleanUrl = semQuery.includes('#') ? semQuery.substring(semQuery.indexOf('#') + 1) || '/' : semQuery;
+    const automaticoRoute = cleanUrl === '/producao/automatico';
+    this.hideNavigation = automaticoRoute;
+    this.hidePageHeader = automaticoRoute;
     this.showBack = !!this.loginService.isLoggedIn() && cleanUrl !== '/home' && cleanUrl !== '/login';
   }
 
@@ -185,7 +190,7 @@ export class AppComponent implements OnInit {
       });
     }
 
-    if (environment.apAuto) {
+    if (environment.apAuto && environment.apAutoMenu) {
       menus.push({
         label: 'Producao Auto',
         link: '/producao/automatico',

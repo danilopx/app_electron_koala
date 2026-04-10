@@ -138,6 +138,21 @@ interface ElectronAutoOrderRow extends ElectronAutoOrderPayload {
   codigo: number;
 }
 
+interface ElectronAutoApontamentoCicloPayload {
+  op: string;
+  empresa: string;
+  filial: string;
+  produto: string;
+  quantidade: number;
+  tipo: string;
+  usuario: string;
+  inicioEm: string;
+  fimEm: string;
+  tempoSegundos: number;
+  tempoMinutos: number;
+  observacao: string;
+}
+
 interface ElectronSqliteGetResult<T = any> {
   success: boolean;
   row?: T | null;
@@ -182,6 +197,7 @@ interface ElectronAPI {
       getOrdemByOp: (op: string) => Promise<ElectronSqliteGetResult<ElectronAutoOrderRow>>;
       upsertOrdem: (payload: ElectronAutoOrderPayload) => Promise<ElectronSqliteRunResult>;
       adjustQuantPar: (payload: { op: string; quantPar: number }) => Promise<ElectronSqliteGetResult<ElectronAutoOrderRow>>;
+      registrarCicloApontamento: (payload: ElectronAutoApontamentoCicloPayload) => Promise<ElectronSqliteRunResult>;
     };
     parametros: {
       list: <T = any>() => Promise<ElectronSqliteAllResult<T>>;

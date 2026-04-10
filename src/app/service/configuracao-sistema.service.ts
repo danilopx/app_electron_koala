@@ -68,6 +68,7 @@ export class ConfiguracaoSistemaService {
       processo,
       apManual: current.apManual ?? DEFAULT_SYSTEM_CONFIG.apManual,
       apAuto: current.apAuto ?? DEFAULT_SYSTEM_CONFIG.apAuto,
+      apAutoMenu: current.apAutoMenu ?? DEFAULT_SYSTEM_CONFIG.apAutoMenu,
       apForaMultiplo: current.apForaMultiplo ?? DEFAULT_SYSTEM_CONFIG.apForaMultiplo,
     };
   }
@@ -124,6 +125,9 @@ export class ConfiguracaoSistemaService {
         break;
       case 'PR_APAUTO':
         RuntimeConfigStore.load({ apAuto: String(valor).trim().toLowerCase() === 'true' });
+        break;
+      case 'PR_MENU_APAUTO':
+        RuntimeConfigStore.load({ apAutoMenu: String(valor).trim().toLowerCase() === 'true' });
         break;
       case 'PR_APFORAMULT':
         RuntimeConfigStore.load({ apForaMultiplo: String(valor).trim().toLowerCase() === 'true' });
@@ -185,6 +189,7 @@ export class ConfiguracaoSistemaService {
       processo: values.processo.trim(),
       apManual: values.apManual ? 'true' : 'false',
       apAuto: values.apAuto ? 'true' : 'false',
+      apAutoMenu: values.apAutoMenu ? 'true' : 'false',
       apForaMultiplo: values.apForaMultiplo ? 'true' : 'false',
     };
 

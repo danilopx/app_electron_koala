@@ -14,6 +14,12 @@
   border-bottom: 1px solid #e5e7eb;
 }
 
+.automatico-header-title {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+
 .automatico-header-actions {
   display: flex;
   justify-content: flex-end;
@@ -326,6 +332,68 @@
   box-shadow: 0 0 0 3px rgba(63, 127, 69, 0.14);
 }
 
+.apontamento-status-body {
+  display: grid;
+  grid-template-columns: 54px 1fr;
+  gap: 16px;
+  align-items: center;
+  padding: 10px 4px 8px;
+}
+
+.apontamento-status-icon {
+  width: 54px;
+  height: 54px;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  background: #eef2f7;
+  color: #374151;
+  font-size: 26px;
+  font-weight: 800;
+}
+
+.apontamento-status-body.is-success .apontamento-status-icon {
+  background: rgba(34, 164, 90, 0.12);
+  color: #15803d;
+}
+
+.apontamento-status-body.is-error .apontamento-status-icon {
+  background: rgba(220, 38, 38, 0.12);
+  color: #b91c1c;
+}
+
+.apontamento-status-spinner {
+  width: 26px;
+  height: 26px;
+  border-radius: 50%;
+  border: 3px solid #cbd5e1;
+  border-top-color: #374151;
+  animation: apontamento-status-spin 0.8s linear infinite;
+}
+
+.apontamento-status-copy {
+  display: grid;
+  gap: 6px;
+}
+
+.apontamento-status-copy strong {
+  color: #1f2937;
+  font-size: 16px;
+  line-height: 1.35;
+}
+
+.apontamento-status-copy span {
+  color: #64748b;
+  font-size: 13px;
+  line-height: 1.45;
+}
+
+@keyframes apontamento-status-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
 @media (max-width: 1100px) {
   .automatico-top-grid,
   .serial-monitor,
@@ -340,6 +408,11 @@
   }
 
   .automatico-header {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .automatico-header-title {
     flex-direction: column;
     align-items: flex-start;
   }

@@ -68,6 +68,7 @@ export class ConfiguracaoInicialComponent implements OnInit {
       processo: currentValues.processo,
       apManual: currentValues.apManual,
       apAuto: currentValues.apAuto,
+      apAutoMenu: currentValues.apAutoMenu,
       apForaMultiplo: currentValues.apForaMultiplo,
     };
 
