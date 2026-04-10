@@ -6,6 +6,13 @@ contextBridge.exposeInMainWorld('electronAPI', {
   getPrinters: () => ipcRenderer.invoke('desktop:get-printers'),
   print: (options) => ipcRenderer.invoke('desktop:print', options),
   printHtml: (options) => ipcRenderer.invoke('desktop:print-html', options),
+  updates: {
+    onStatus: (callback) => {
+      const listener = (_event, payload) => callback(payload);
+      ipcRenderer.on('desktop:update-status', listener);
+      return () => ipcRenderer.removeListener('desktop:update-status', listener);
+    },
+  },
   serial: {
     startReading: () => ipcRenderer.invoke('serial:start-reading'),
     stopReading: () => ipcRenderer.invoke('serial:stop-reading'),

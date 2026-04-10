@@ -160,6 +160,10 @@ function notifyAutoExecutionUpdate(payload) {
   notifySerialPayload('apontamento-auto:update', payload);
 }
 
+function notifyUpdateStatus(payload) {
+  notifySerialPayload('desktop:update-status', payload);
+}
+
 function getConfiguredPortaCom() {
   const row = sqlite.get(
     `
@@ -948,14 +952,28 @@ async function setupAutoUpdater() {
 
   autoUpdater.on('error', (error) => {
     console.error('[electron] Falha na verificacao de atualizacoes:', error);
+    notifyUpdateStatus({
+      status: 'error',
+      message: error instanceof Error ? error.message : 'Falha ao verificar atualizacoes.',
+    });
   });
 
   autoUpdater.on('update-available', (info) => {
     console.log('[electron] Atualizacao disponivel:', info?.version || info);
+    notifyUpdateStatus({
+      status: 'available',
+      version: info?.version || '',
+      message: `Nova atualizacao do sistema encontrada${info?.version ? ` (${info.version})` : ''}. Baixando...`,
+    });
   });
 
   autoUpdater.on('update-not-available', (info) => {
     console.log('[electron] Aplicacao atualizada:', info?.version || info);
+    notifyUpdateStatus({
+      status: 'idle',
+      version: info?.version || '',
+      message: '',
+    });
   });
 
   autoUpdater.on('download-progress', (progress) => {
@@ -965,18 +983,32 @@ async function setupAutoUpdater() {
       total: progress?.total,
       bytesPerSecond: progress?.bytesPerSecond,
     });
+    notifyUpdateStatus({
+      status: 'downloading',
+      percent: Number(progress?.percent || 0),
+      transferred: Number(progress?.transferred || 0),
+      total: Number(progress?.total || 0),
+      bytesPerSecond: Number(progress?.bytesPerSecond || 0),
+      message: `Nova atualizacao do sistema encontrada. Baixando... ${Math.round(Number(progress?.percent || 0))}%`,
+    });
   });
 
   autoUpdater.on('update-downloaded', async (info) => {
+    notifyUpdateStatus({
+      status: 'downloaded',
+      version: info?.version || '',
+      message: `Nova versao baixada${info?.version ? ` (${info.version})` : ''}. Pronta para atualizar.`,
+    });
+
     try {
       const response = await dialog.showMessageBox({
         type: 'info',
-        title: 'Atualizacao disponivel',
-        message: `A versao ${info?.version || 'nova'} foi baixada.`,
-        detail: 'Deseja reiniciar agora para concluir a atualizacao?',
-        buttons: ['Reiniciar agora', 'Depois'],
+        title: 'Atualizacao do sistema',
+        message: `A nova versao ${info?.version || ''} foi baixada com sucesso.`,
+        detail: 'Clique em Atualizar para reiniciar o aplicativo e concluir a instalacao.',
+        buttons: ['Atualizar'],
         defaultId: 0,
-        cancelId: 1,
+        cancelId: 0,
         noLink: true,
       });
 

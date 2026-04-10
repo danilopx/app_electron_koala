@@ -17,6 +17,13 @@
             (p-click)="goBack()">
           </po-button>
         </div>
+        <section class="desktop-update-banner" *ngIf="shouldShowDesktopUpdateBanner">
+          <span class="desktop-update-banner__icon po-icon po-icon-info" aria-hidden="true"></span>
+          <div>
+            <strong>Atualização do sistema</strong>
+            <p>{{ desktopUpdateMessage }}</p>
+          </div>
+        </section>
         <!-- Renderiza as Outras Páginas -->
         <router-outlet></router-outlet>
       </main>

@@ -175,12 +175,25 @@ interface ElectronAppInfo {
   isPackaged: boolean;
 }
 
+interface ElectronUpdateStatusPayload {
+  status: 'idle' | 'available' | 'downloading' | 'downloaded' | 'error';
+  version?: string;
+  percent?: number;
+  transferred?: number;
+  total?: number;
+  bytesPerSecond?: number;
+  message?: string;
+}
+
 interface ElectronAPI {
   isDesktop: boolean;
   getAppInfo: () => Promise<ElectronAppInfo>;
   getPrinters: () => Promise<ElectronPrinterInfo[]>;
   print: (options?: ElectronPrintOptions) => Promise<ElectronPrintResult>;
   printHtml: (options: ElectronPrintHtmlOptions) => Promise<ElectronPrintResult>;
+  updates: {
+    onStatus: (callback: (payload: ElectronUpdateStatusPayload) => void) => () => void;
+  };
   serial: {
     startReading: () => Promise<ElectronSerialResult>;
     stopReading: () => Promise<ElectronSerialResult>;

@@ -37,7 +37,10 @@ export class AppComponent implements OnInit, OnDestroy {
   };
   showLicenseErrorModal = false;
   licenseErrorMessage = '';
+  desktopUpdateStatus: ElectronUpdateStatusPayload | null = null;
+  currentCleanUrl = '';
   private licenseErrorSubscription?: Subscription;
+  private removeDesktopUpdateListener?: () => void;
 
   constructor(
     public loginService: LoginService,
@@ -79,6 +82,11 @@ export class AppComponent implements OnInit, OnDestroy {
       this.licenseErrorMessage = message;
       this.showLicenseErrorModal = true;
     });
+    if (window.electronAPI?.updates?.onStatus) {
+      this.removeDesktopUpdateListener = window.electronAPI.updates.onStatus((payload) => {
+        this.desktopUpdateStatus = payload;
+      });
+    }
 
     // Workaround Po-UI bug eventdata may call focusFunction with undefined elements
     document.addEventListener('focusin', (event: FocusEvent) => {
@@ -100,6 +108,7 @@ export class AppComponent implements OnInit, OnDestroy {
 
   ngOnDestroy(): void {
     this.licenseErrorSubscription?.unsubscribe();
+    this.removeDesktopUpdateListener?.();
   }
 
   public get isLogged(): boolean {
@@ -159,10 +168,22 @@ export class AppComponent implements OnInit, OnDestroy {
   private updateBackVisibility(url: string): void {
     const semQuery = url.split('?')[0] || '';
     const cleanUrl = semQuery.includes('#') ? semQuery.substring(semQuery.indexOf('#') + 1) || '/' : semQuery;
+    this.currentCleanUrl = cleanUrl;
     const automaticoRoute = cleanUrl === '/producao/automatico';
     this.hideNavigation = automaticoRoute;
     this.hidePageHeader = automaticoRoute;
     this.showBack = !!this.loginService.isLoggedIn() && cleanUrl !== '/home' && cleanUrl !== '/login';
+  }
+
+  get shouldShowDesktopUpdateBanner(): boolean {
+    return this.currentCleanUrl === '/home' && (
+      this.desktopUpdateStatus?.status === 'available' ||
+      this.desktopUpdateStatus?.status === 'downloading'
+    );
+  }
+
+  get desktopUpdateMessage(): string {
+    return this.desktopUpdateStatus?.message || 'Nova atualizacao do sistema encontrada. Baixando...';
   }
 
   private updateBreadcrumb(): void {

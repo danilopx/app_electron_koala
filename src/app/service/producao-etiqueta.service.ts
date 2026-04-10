@@ -160,14 +160,17 @@ export class ProducaoEtiquetaService {
               height: 75mm;
               max-height: 75mm;
               overflow: hidden;
+              display: flex;
+              justify-content: center;
+              align-items: flex-start;
             }
             .label {
-              width: 98mm;
-              max-width: 98mm;
+              width: 96mm;
+              max-width: 96mm;
               height: 75mm;
               max-height: 75mm;
               margin: 0 auto;
-              padding: 1.2mm 0.8mm 0.9mm;
+              padding: 1.2mm 0.4mm 0.9mm 1.2mm;
               box-sizing: border-box;
               overflow: hidden;
               page-break-after: avoid;
@@ -178,7 +181,7 @@ export class ProducaoEtiquetaService {
               height: 100%;
               box-sizing: border-box;
               border: 1px solid #4b4b4b;
-              padding: 1.3mm 0 0.95mm;
+              padding: 1.3mm 0.9mm 0.95mm 1.4mm;
               display: flex;
               flex-direction: column;
             }
@@ -187,15 +190,15 @@ export class ProducaoEtiquetaService {
               grid-template-columns: 1.1fr 0.8fr 1fr;
               gap: 1mm;
               align-items: start;
-              padding-left: 1.2mm;
-              padding-right: 1.2mm;
+              padding-left: 0.4mm;
+              padding-right: 0.3mm;
             }
             .split-grid {
               display: grid;
               grid-template-columns: 1fr 1fr;
               gap: 2mm;
-              padding-left: 1.2mm;
-              padding-right: 1.2mm;
+              padding-left: 0.4mm;
+              padding-right: 0.3mm;
             }
             .split-grid--meta {
               gap: 0;
@@ -225,8 +228,8 @@ export class ProducaoEtiquetaService {
               min-height: 8mm;
             }
             .row > * {
-              padding-left: 1.2mm;
-              padding-right: 1.2mm;
+              padding-left: 0.4mm;
+              padding-right: 0.3mm;
             }
             .meta-inline {
               display: flex;
@@ -302,8 +305,8 @@ export class ProducaoEtiquetaService {
               display: flex;
               justify-content: flex-end;
               margin-top: 0.315mm;
-              padding-left: 1.2mm;
-              padding-right: 1.2mm;
+              padding-left: 0.4mm;
+              padding-right: 0.3mm;
               font-size: 6.8pt;
               font-weight: 700;
             }
@@ -412,14 +415,18 @@ export class ProducaoEtiquetaService {
               color: #111111;
               font-family: Arial, Helvetica, sans-serif;
               overflow: hidden;
+              display: flex;
+              justify-content: center;
+              align-items: flex-start;
             }
             .label {
-              width: 100mm;
-              max-width: 100mm;
+              width: 96mm;
+              max-width: 96mm;
               height: 75mm;
               max-height: 75mm;
               box-sizing: border-box;
-              padding: 2.5mm;
+              margin: 0 auto;
+              padding: 2.5mm 0.8mm 2.5mm 1.6mm;
             }
             .frame {
               width: 100%;
