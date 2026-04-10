@@ -15,6 +15,7 @@ module.exports = {
     ...(packageJson.build?.directories || {}),
     output: outputDir,
   },
+  artifactName: '${productName}-${version}.${ext}',
   linux: {
     icon: 'src/assets/Simplify-256.png',
     target: ['AppImage', 'deb'],
