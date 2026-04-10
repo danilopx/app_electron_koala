@@ -70,8 +70,8 @@ jobs:
         with:
           name: ${{ matrix.artifact_name }}
           path: |
-            ${{ env.ELECTRON_BUILDER_OUTPUT }}/Koala Setup *.exe
-            ${{ env.ELECTRON_BUILDER_OUTPUT }}/Koala Setup *.exe.blockmap
+            ${{ env.ELECTRON_BUILDER_OUTPUT }}/Koala-*.exe
+            ${{ env.ELECTRON_BUILDER_OUTPUT }}/Koala-*.exe.blockmap
             ${{ env.ELECTRON_BUILDER_OUTPUT }}/latest.yml
           if-no-files-found: error
 
